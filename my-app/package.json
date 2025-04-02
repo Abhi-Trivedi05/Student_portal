@@ -2,6 +2,7 @@
   "type": "module",
   "name": "student_registration",
   "version": "1.0.0",
+  "proxy": "http://localhost:5000",
   "main": "src/server.js",
   "private": true,
   "dependencies": {
@@ -9,6 +10,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
@@ -19,9 +21,11 @@
     "mongoose": "^8.13.1",
     "mysql": "^2.18.1",
     "mysql2": "^3.14.0",
+    "nodemon": "^3.1.9",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-scripts": "5.0.1",
+    "react-router-dom": "^6.3.0",
+    "react-scripts": "^3.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

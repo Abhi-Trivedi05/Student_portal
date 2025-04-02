@@ -1,22 +1,20 @@
 import express from 'express';
-import db from '../database/db.js';
-import bcrypt from 'bcrypt';
+import db from '../database/db.js'; 
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
-const JWT_SECRET = 'your_jwt_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
-// Unified Login Route
+// Updated Login Route
 router.post('/login', async (req, res) => {
-    const { username, password, role } = req.body;
-
-    if (!username || !password || !role) {
-        return res.status(400).json({ message: "Username, password, and role are required" });
+    const { id, password, role } = req.body;
+    
+    if (!id || !password || !role) {
+        return res.status(400).json({ success: false, message: "ID, password, and role are required" });
     }
-
+    
     let query, userType, userIdColumn;
-
-    // Determine table and ID column based on role
+    
     if (role === 'admin') {
         query = 'SELECT * FROM admin WHERE username = ?';
         userType = 'admin';
@@ -26,39 +24,55 @@ router.post('/login', async (req, res) => {
         userType = 'student';
         userIdColumn = 'student_id';
     } else if (role === 'faculty') {
-        query = 'SELECT * FROM faculty WHERE id = ?'; // Adjusted to match schema
+        query = 'SELECT * FROM faculty WHERE id = ?';
         userType = 'faculty';
         userIdColumn = 'id';
     } else {
-        return res.status(400).json({ message: "Invalid role" });
+        return res.status(400).json({ success: false, message: "Invalid role" });
     }
-
+    
     try {
-        const [rows] = await db.promise().query(query, [username]);
-
+        const [rows] = await db.query(query, [id]);
+        
         if (rows.length === 0) {
-            return res.status(400).json({ message: "Invalid credentials" });
+            return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
-
+        
         const user = rows[0];
-
-        // Compare the hashed password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
+        
+        // Directly compare plain text passwords
+        if (password !== user.password) {
+            return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
-
-        // Generate JWT Token with user ID and role
+        
+        // Generate JWT Token with role information
         const token = jwt.sign(
-            { id: user[userIdColumn], role: userType },  // Use the dynamic ID column
+            { 
+                id: user[userIdColumn], 
+                role: userType,
+                name: user.name || null,
+                department: user.department || null
+            },
             JWT_SECRET,
             { expiresIn: '1h' }
         );
-
-        res.json({ message: 'Login successful', token, role: userType });
+        
+        // Return user information along with token
+        res.json({ 
+            success: true, 
+            message: 'Login successful', 
+            token, 
+            role: userType,
+            user: {
+                id: user[userIdColumn],
+                name: user.name || null,
+                department: user.department || null,
+                status: user.status || 'active'
+            }
+        });
     } catch (err) {
         console.error("Login Error:", err);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ success: false, message: "Server error" });
     }
 });
 

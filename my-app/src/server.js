@@ -1,24 +1,28 @@
 import express from 'express';
 import db from '../database/db.js';  // MySQL database connection file
 import cors from 'cors';
-import studentRoutes from '../routes/studentRoutes.js';  // Import student routes
-import courseRoutes from '../routes/courseRoutes.js';  // Import course routes
-import facultyRoutes from '../routes/facultyRoutes.js';  // Import faculty routes
-import feeRoutes from '../routes/feeRoutes.js';  // Import fee routes
+import dotenv from 'dotenv';  // For managing environment variables
+
 import authRoutes from '../routes/authRoutes.js';  // Import auth routes (login)
+import adminRoutes from '../routes/adminRoutes.js';
+import announmentroutes from '../routes/announcementRoutes.js';
+import feeRoutes from '../routes/feeapprovalRoutes.js';
+dotenv.config();  // Initialize dotenv to read .env files
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Use the routes for respective paths
-app.use('/api/students', studentRoutes);  // Use student routes
-app.use('/api/courses', courseRoutes);  // Use course routes
-app.use('/api/faculty', facultyRoutes);  // Use faculty routes
-app.use('/api/fees', feeRoutes);  // Use fee routes
-app.use('/api/auth', authRoutes);  // Use auth routes (login)
 
+// app.use('/api/fees', feeRoutes);
+app.use('/api/auth', authRoutes);
+
+// Keep admin dashboard under admin prefix
+app.use('/api/admin', adminRoutes);
+app.use('/api/announcements', announmentroutes);
+app.use('/api/approval',
+    feeRoutes);
 // Test database connection
 app.get("/api/test-db", async (req, res) => {
     try {
@@ -28,6 +32,17 @@ app.get("/api/test-db", async (req, res) => {
         console.error("Database Connection Error:", error);
         res.status(500).json({ message: "Database connection failed" });
     }
+});
+
+// Handle 404 (Route not found)
+app.use((req, res) => {
+    res.status(404).json({ message: "Route not found" });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: "Something went wrong!" });
 });
 
 // Start server

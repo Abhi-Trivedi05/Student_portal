@@ -1,5 +1,6 @@
-import mysql from 'mysql2/promise';
+import mysql from 'mysql2';
 
+// Create a connection pool
 const db = mysql.createPool({
     host: 'localhost',
     user: 'root',
@@ -7,4 +8,6 @@ const db = mysql.createPool({
     database: 'student_registration',
 });
 
-export default db;
+// Expose the promise-based API
+const promisePool = db.promise();  // Get promise API
+export default promisePool;        // Export it to be used in your routes
