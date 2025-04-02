@@ -27,9 +27,12 @@ const Login = () => {
         // Store JWT token
         localStorage.setItem("token", response.data.token);
         
-        // Store user information
+        // Store user role
         localStorage.setItem("role", response.data.role);
-        localStorage.setItem("userId", response.data.user.id);
+        
+        // Store user ID with role prefix
+        const roleKey = `${response.data.role}Id`;
+        localStorage.setItem(roleKey, response.data.user.id);
         localStorage.setItem("userName", response.data.user.name || "");
         
         // Store the entire user object as JSON for easy access
@@ -39,7 +42,7 @@ const Login = () => {
         if (response.data.role === "admin") {
           navigate("/admin/dashboard");
         } else if (response.data.role === "faculty") {
-          navigate("/faculty/dashboard");
+          navigate("/faculty/Dashboard");
         } else {
           navigate("/student/dashboard");
         }
