@@ -13,26 +13,30 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ success: false, message: "ID, password, and role are required" });
     }
     
-    let query, userType, userIdColumn;
+    let query, userType, userIdColumn, paramValue;
     
     if (role === 'admin') {
+        // For admin, use the id field from request as username
         query = 'SELECT * FROM admin WHERE username = ?';
         userType = 'admin';
         userIdColumn = 'id';
+        paramValue = id; // This is the username for admin
     } else if (role === 'student') {
         query = 'SELECT * FROM students WHERE student_id = ?';
         userType = 'student';
         userIdColumn = 'student_id';
+        paramValue = id;
     } else if (role === 'faculty') {
         query = 'SELECT * FROM faculty WHERE id = ?';
         userType = 'faculty';
         userIdColumn = 'id';
+        paramValue = id;
     } else {
         return res.status(400).json({ success: false, message: "Invalid role" });
     }
     
     try {
-        const [rows] = await db.query(query, [id]);
+        const [rows] = await db.query(query, [paramValue]);
         
         if (rows.length === 0) {
             return res.status(400).json({ success: false, message: "Invalid credentials" });
@@ -50,7 +54,7 @@ router.post('/login', async (req, res) => {
             { 
                 id: user[userIdColumn], 
                 role: userType,
-                name: user.name || null,
+                name: user.name || user.username || null,
                 department: user.department || null
             },
             JWT_SECRET,
@@ -65,7 +69,7 @@ router.post('/login', async (req, res) => {
             role: userType,
             user: {
                 id: user[userIdColumn],
-                name: user.name || null,
+                name: user.name || user.username || null,
                 department: user.department || null,
                 status: user.status || 'active'
             }

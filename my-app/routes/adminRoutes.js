@@ -1,11 +1,11 @@
 import express from 'express';
-import db from '../database/db.js'; // Ensure db is correctly imported
+import db from '../database/db.js';
 
 const router = express.Router();
 
 // Middleware to verify admin role
 const verifyAdmin = (req, res, next) => {
-    const role = req.header('Role'); // Check if role is in the headers.
+    const role = req.header('Role'); 
 
     if (!role) {
         return res.status(401).json({ success: false, message: "Authorization denied: No role found." });

@@ -1,4 +1,3 @@
-// routes/feeApproval.js
 import express from 'express';
 import db from '../database/db.js'; // Ensure db is correctly imported
 
