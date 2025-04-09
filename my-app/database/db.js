@@ -4,8 +4,9 @@ import mysql from 'mysql2';
 const db = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: '1234',
+    password: 'Wisteria@123',
     database: 'student_registration',
+    port:'3306',  
 });
 
 // Expose the promise-based API

@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./index.css"; 
 import Login from "./Login"; // Importing Login component
 import AdminDashboard from './admin/AdminDashboard'; // Example for Admin Dashboard
 import AddStudent from "./admin/AddStudent";
@@ -43,7 +44,11 @@ function App() {
         <Route path="/faculty/application-details/:id" element={<ApplicationDetails />} />
         <Route path="/faculty/rejected-applications" element={<RejectedApplications />} />
         </Routes>
+     
+
       </div>
+   
+
     </Router>
   );
 }
