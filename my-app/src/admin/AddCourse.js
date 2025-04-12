@@ -506,8 +506,6 @@
 // };
 
 // export default AddCourse;
-
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
@@ -517,13 +515,14 @@ const AddCourse = () => {
   const [activeDropdown, setActiveDropdown] = useState(""); // Tracks active dropdown
   const [showLogout, setShowLogout] = useState(false); // Tracks logout menu visibility
   const [courseData, setCourseData] = useState({
-    course_id: "",
+    course_code: "",
     course_name: "",
     department: "",
     credits: "",
     semester: "",
+    batch: "",
     faculty_id: "",
-    description: "",
+    description: ""
   });
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
@@ -548,6 +547,13 @@ const AddCourse = () => {
       return;
     }
 
+    // Validate required fields according to backend requirements
+    if (!courseData.course_code || !courseData.course_name || !courseData.credits || !courseData.department) {
+      setMessageType("error");
+      setMessage("Please provide all required fields: course code, name, credits, and department.");
+      return;
+    }
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/admin/add-course",
@@ -562,13 +568,14 @@ const AddCourse = () => {
       setMessage(response.data.message);
       // Reset form
       setCourseData({
-        course_id: "",
+        course_code: "",
         course_name: "",
         department: "",
         credits: "",
         semester: "",
+        batch: "",
         faculty_id: "",
-        description: "",
+        description: ""
       });
     } catch (error) {
       setMessageType("error");
@@ -616,13 +623,14 @@ const AddCourse = () => {
   ];
 
   const fields = [
-    { name: "course_id", label: "Course ID *", placeholder: "e.g., CS101" },
+    { name: "course_code", label: "Course Code *", placeholder: "e.g., CS101" },
     { name: "course_name", label: "Course Name *", placeholder: "Enter course name" },
     { name: "department", label: "Department *", placeholder: "e.g., CSE, IT" },
     { name: "credits", label: "Credits *", placeholder: "e.g., 3, 4", type: "number" },
-    { name: "semester", label: "Semester *", placeholder: "e.g., 1, 2, 3", type: "number" },
+    { name: "semester", label: "Semester", placeholder: "e.g., 1, 2, 3", type: "number" },
+    { name: "batch", label: "Batch", placeholder: "e.g., 2023-27" },
     { name: "faculty_id", label: "Faculty ID", placeholder: "Enter faculty ID" },
-    { name: "description", label: "Description", placeholder: "Enter course description" },
+    { name: "description", label: "Description", placeholder: "Enter course description" }
   ];
 
   return (

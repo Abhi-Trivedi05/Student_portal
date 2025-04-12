@@ -4,7 +4,7 @@ import mysql from 'mysql2';
 const db = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: 'Wisteria@123',
+    password: '1234',
     database: 'student_registration',
     port:'3306',  
 });
