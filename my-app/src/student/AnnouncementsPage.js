@@ -1,14 +1,67 @@
-import React from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AnnouncementsPage = () => {
-  const navigate = useNavigate(); // Initialize navigation function
+  const navigate = useNavigate();
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Get student ID from localStorage (assuming it's stored during login)
+  const studentId = localStorage.getItem("studentId") || "";
+  const studentName = localStorage.getItem("studentName") || "Student";
 
-  const announcements = [
-    { title: "Semester Registration Open", date: "March 30, 2025", content: "Students can now register for the upcoming semester. Deadline: April 10, 2025." },
-    { title: "Hackathon Event", date: "March 25, 2025", content: "Join our 48-hour hackathon. Registrations open until April 5, 2025." },
-    { title: "Exam Schedule Released", date: "March 20, 2025", content: "The final exam schedule is now available. Check the academic calendar for details." },
-  ];
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        setLoading(true);
+        // Fetch announcements that are active and visible to students or all
+        const response = await axios.get('/api/announcements', {
+          params: {
+            visibility: 'Students,All',
+            status: 'active'
+          }
+        });
+
+        if (response.data && Array.isArray(response.data)) {
+          setAnnouncements(response.data);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (err) {
+        console.error("Error fetching announcements:", err);
+        setError("Failed to load announcements. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnnouncements();
+  }, []);
+
+  // Format date function
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  // Get importance class for styling
+  const getImportanceClass = (importance) => {
+    switch (importance?.toLowerCase()) {
+      case "urgent":
+        return "border-red-500 bg-red-50";
+      case "important":
+        return "border-orange-500 bg-orange-50";
+      default:
+        return "border-[#49196c]";
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -24,12 +77,12 @@ const AnnouncementsPage = () => {
           </div>
 
           {/* Navigation Links */}
-          <nav className="mt-10"> {/* Moved down slightly */}
-            <ul className="space-y-5"> {/* Increased spacing */}
-              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student-homepage")}>
+          <nav className="mt-10">
+            <ul className="space-y-5">
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/dashboard")}>
                 Home
               </li>
-              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student-registration")}>
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/step-1-registration")}>
                 Registration
               </li>
               <li className="cursor-pointer hover:text-gray-300">Activities</li>
@@ -43,7 +96,7 @@ const AnnouncementsPage = () => {
         {/* Profile Section */}
         <div className="flex items-center space-x-3 border-t border-gray-500 pt-4">
           <img src="/profile-icon.png" alt="Profile" className="h-10 w-10 rounded-full border border-gray-300" />
-          <span className="text-sm font-medium">John Doe</span>
+          <span className="text-sm font-medium">{studentName}</span>
         </div>
       </aside>
 
@@ -51,15 +104,67 @@ const AnnouncementsPage = () => {
       <div className="flex-1 p-8">
         <h1 className="text-3xl font-bold text-[#49196c] mb-6">Announcements</h1>
 
-        <div className="space-y-6">
-          {announcements.map((announcement, index) => (
-            <div key={index} className="bg-white p-6 shadow-md rounded-lg border-l-4 border-[#49196c]">
-              <h2 className="text-xl font-semibold">{announcement.title}</h2>
-              <p className="text-gray-500 text-sm">{announcement.date}</p>
-              <p className="text-gray-700 mt-2">{announcement.content}</p>
-            </div>
-          ))}
-        </div>
+        {/* Loading state */}
+        {loading && (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#49196c]"></div>
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && !loading && (
+          <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
+        {/* Announcements list */}
+        {!loading && !error && (
+          <div className="space-y-6">
+            {announcements.length > 0 ? (
+              announcements.map((announcement) => (
+                <div 
+                  key={announcement.id} 
+                  className={`bg-white p-6 shadow-md rounded-lg border-l-4 ${getImportanceClass(announcement.importance)}`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h2 className="text-xl font-semibold">{announcement.title}</h2>
+                      <p className="text-gray-500 text-sm">Posted: {formatDate(announcement.publication_date)}</p>
+                      {announcement.expiry_date && (
+                        <p className="text-gray-500 text-sm">Expires: {formatDate(announcement.expiry_date)}</p>
+                      )}
+                    </div>
+                    {announcement.importance && announcement.importance.toLowerCase() !== "normal" && (
+                      <span className={`px-3 py-1 rounded-full text-sm ${
+                        announcement.importance.toLowerCase() === "urgent" 
+                          ? "bg-red-100 text-red-800" 
+                          : "bg-orange-100 text-orange-800"
+                      }`}>
+                        {announcement.importance}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-700 mt-4">{announcement.description}</p>
+                  {announcement.form_link && (
+                    <a 
+                      href={announcement.form_link} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 hover:underline mt-4 inline-block"
+                    >
+                      Related Form →
+                    </a>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center p-12 bg-white rounded-lg shadow-md">
+                <p className="text-gray-500">No announcements available at this time.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

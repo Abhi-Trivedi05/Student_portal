@@ -1,343 +1,232 @@
-// import React, { useState, useEffect } from "react";
-// import axios from "axios";
-// import { useNavigate } from "react-router-dom";
-
-// const EditCourse = () => {
-//   const [courseId, setCourseId] = useState("");
-//   const [courseData, setCourseData] = useState({
-//     course_code: "",
-//     course_name: "",
-//     credits: "",
-//     department: "",
-//     faculty_id: "",
-//     semester: "",
-//     batch: ""
-//   });
-  
-//   const [facultyList, setFacultyList] = useState([]);
-//   const [courseList, setCourseList] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [fetchLoading, setFetchLoading] = useState(false);
-//   const [message, setMessage] = useState("");
-//   const [messageType, setMessageType] = useState("");
-//   const [found, setFound] = useState(false);
-//   const navigate = useNavigate();
-  
-//   // Fetch faculty list for dropdown
-//   useEffect(() => {
-//     const fetchFaculties = async () => {
-//       try {
-//         const response = await axios.get("http://localhost:5000/api/admin/get-faculty", {
-//           headers: { Role: "admin" }
-//         });
-        
-//         if (response.data && response.data.faculty) {
-//           setFacultyList(response.data.faculty);
-//         }
-//       } catch (error) {
-//         console.error("Error fetching faculty list:", error);
-//         setMessage("Failed to fetch faculty list. " + (error.response?.data?.message || error.message));
-//         setMessageType("error");
-//       }
-//     };
-    
-//     fetchFaculties();
-//   }, []);
-  
-//   // Fetch course list for dropdown
-//   useEffect(() => {
-//     const fetchCourses = async () => {
-//       try {
-//         const response = await axios.get("http://localhost:5000/api/admin/get-courses", {
-//           headers: { Role: "admin" }
-//         });
-        
-//         if (response.data && response.data.courses) {
-//           setCourseList(response.data.courses);
-//         }
-//       } catch (error) {
-//         console.error("Error fetching course list:", error);
-//         setMessage("Failed to fetch course list. " + (error.response?.data?.message || error.message));
-//         setMessageType("error");
-//       }
-//     };
-    
-//     fetchCourses();
-//   }, []);
-  
-//   const handleCourseSelect = async (e) => {
-//     const selectedId = e.target.value;
-//     setCourseId(selectedId);
-    
-//     if (!selectedId) {
-//       setCourseData({
-//         course_code: "",
-//         course_name: "",
-//         credits: "",
-//         department: "",
-//         faculty_id: "",
-//         semester: "",
-//         batch: ""
-//       });
-//       setFound(false);
-//       return;
-//     }
-    
-//     setFetchLoading(true);
-//     setMessage("");
-    
-//     try {
-//       const response = await axios.get(`http://localhost:5000/api/admin/course/${selectedId}`, {
-//         headers: { Role: "admin" }
-//       });
-      
-//       if (response.data) {
-//         // Map the response data to our form structure
-//         setCourseData({
-//           course_code: response.data.course_code || "",
-//           course_name: response.data.course_name || "",
-//           credits: response.data.credits || "",
-//           department: response.data.department || "",
-//           faculty_id: response.data.faculty_id || "",
-//           semester: response.data.semester || "",
-//           batch: response.data.batch || ""
-//         });
-//         setFound(true);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching course data:", error);
-//       if (error.response?.status === 404) {
-//         setMessage("Course not found with ID: " + selectedId);
-//       } else {
-//         setMessage("Error: " + (error.response?.data?.message || error.message));
-//       }
-//       setMessageType("error");
-//       setFound(false);
-//     } finally {
-//       setFetchLoading(false);
-//     }
-//   };
-  
-//   const handleChange = (e) => {
-//     setCourseData({ ...courseData, [e.target.name]: e.target.value });
-//   };
-  
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setLoading(true);
-//     setMessage("");
-    
-//     // Form validation
-//     if (!courseData.course_code || !courseData.course_name || !courseData.credits || !courseData.department) {
-//       setMessage("Please fill all required fields");
-//       setMessageType("error");
-//       setLoading(false);
-//       return;
-//     }
-    
-//     try {
-//       const response = await axios.put(
-//         `http://localhost:5000/api/admin/edit-course/${courseId}`, 
-//         courseData,
-//         { headers: { Role: "admin" } }
-//       );
-      
-//       setMessage(response.data.message || "Course updated successfully");
-//       setMessageType("success");
-//     } catch (error) {
-//       console.error("Error updating course:", error);
-//       setMessage("Failed to update course: " + (error.response?.data?.message || error.message));
-//       setMessageType("error");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-  
-//   return (
-//     <div className="p-4 max-w-lg mx-auto">
-//       <h2 className="text-2xl font-bold mb-4">Edit Course</h2>
-      
-//       {message && (
-//         <div className={`mb-4 p-2 rounded ${messageType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-//           {message}
-//         </div>
-//       )}
-      
-//       {/* Course Selection Dropdown */}
-//       <div className="mb-6 p-4 border rounded-md bg-gray-50">
-//         <div>
-//           <label className="block text-sm font-medium text-gray-700 mb-1">Select Course to Edit</label>
-//           <select 
-//             value={courseId} 
-//             onChange={handleCourseSelect} 
-//             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-//           >
-//             <option value="">-- Select a Course --</option>
-//             {courseList.map((course) => (
-//               <option key={course.id} value={course.id}>
-//                 {course.course_code} - {course.course_name}
-//               </option>
-//             ))}
-//           </select>
-//         </div>
-//         {fetchLoading && <p className="mt-2 text-sm text-blue-600">Loading course data...</p>}
-//       </div>
-      
-//       {/* Course Edit Form - Only shown after a course is selected */}
-//       {found && (
-//         <form onSubmit={handleSubmit} className="space-y-4">
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700">Course Code</label>
-//             <input 
-//               type="text" 
-//               name="course_code" 
-//               value={courseData.course_code} 
-//               onChange={handleChange} 
-//               required 
-//               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-//             />
-//           </div>
-          
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700">Course Name</label>
-//             <input 
-//               type="text" 
-//               name="course_name" 
-//               value={courseData.course_name} 
-//               onChange={handleChange} 
-//               required 
-//               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-//             />
-//           </div>
-          
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700">Credits</label>
-//             <input 
-//               type="number" 
-//               name="credits" 
-//               value={courseData.credits} 
-//               onChange={handleChange} 
-//               required 
-//               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-//             />
-//           </div>
-          
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700">Department</label>
-//             <input 
-//               type="text" 
-//               name="department" 
-//               value={courseData.department} 
-//               onChange={handleChange} 
-//               required 
-//               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-//             />
-//           </div>
-          
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700">Faculty</label>
-//             <select 
-//               name="faculty_id" 
-//               value={courseData.faculty_id} 
-//               onChange={handleChange} 
-//               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-//             >
-//               <option value="">Select Faculty</option>
-//               {facultyList.map((faculty) => (
-//                 <option key={faculty.id} value={faculty.id}>
-//                   {faculty.name}
-//                 </option>
-//               ))}
-//             </select>
-//           </div>
-          
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700">Semester</label>
-//             <input 
-//               type="number" 
-//               name="semester" 
-//               value={courseData.semester} 
-//               onChange={handleChange} 
-//               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-//             />
-//           </div>
-          
-//           <div>
-//             <label className="block text-sm font-medium text-gray-700">Batch</label>
-//             <input 
-//               type="text" 
-//               name="batch" 
-//               value={courseData.batch} 
-//               onChange={handleChange} 
-//               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-//             />
-//           </div>
-          
-//           <div className="flex space-x-4">
-//             <button 
-//               type="submit" 
-//               className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full"
-//               disabled={loading}
-//             >
-//               {loading ? "Updating..." : "Update Course"}
-//             </button>
-            
-//             <button 
-//               type="button" 
-//               onClick={() => navigate(-1)} 
-//               className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full"
-//             >
-//               Cancel
-//             </button>
-//           </div>
-//         </form>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default EditCourse;
-
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
+import axios from "axios";
 
 const EditCourse = () => {
-  const navigate = useNavigate();
-  const [activeDropdown, setActiveDropdown] = useState(""); // Tracks active dropdown
-  
-  // State for the course ID input phase
-  const [courseId, setCourseId] = useState("");
-  const [idSubmitted, setIdSubmitted] = useState(false);
-  
-  // State for course data and editing
-  const [courseData, setcourseData] = useState({
+  const [activeDropdown, setActiveDropdown] = useState("");
+  const [allCourses, setAllCourses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [academicYears, setAcademicYears] = useState([]);
+  const [courseData, setCourseData] = useState({
     course_code: "",
     course_name: "",
-    credits: "",
     department: "",
-    faculty_id: "",
+    credits: "",
     semester: "",
-    batch: ""
+    batch: "",
+    max_seats: "",
+    faculty_id: "",
+    description: "",
+    academic_year_id: ""
   });
-  
-  // State for field selection
-  const [fieldsToEdit, setFieldsToEdit] = useState({
-    course_code: false,
-    course_name: false,
-    credits: false,
-    department: false,
-    faculty_id: false,
-    semester: false,
-    batch: false
-  });
-  
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [facultyList, setFacultyList] = useState([]);
-  const [courseList, setCourseList] = useState([]);
+  const navigate = useNavigate();
+
+  // Semester options for dropdown selection
+  const semesterOptions = [1, 2, 3, 4, 5, 6, 7, 8];
+  // Batch options
+  const batchOptions = ["2020-2024", "2021-2025", "2022-2026", "2023-2027", "2024-2028"];
+
+  // Fetch academic years and all courses when component mounts
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setLoading(true);
+      try {
+        // Fetch academic years
+        const response = await axios.get("http://localhost:5000/api/admin/academic-years", {
+          headers: {
+            Authorization: `Bearer`,
+            Role: localStorage.getItem("role")
+          }
+        });
+        
+        console.log("API Response:", response.data);
+        setAcademicYears(response.data.data || []);
+        // const academicYearsRes = await axios.get("http://localhost:5000/api/admin/academic-years", {
+        //   headers: {
+        //     Authorization: `Bearer ${localStorage.getItem("token")}`,
+        //     Role: localStorage.getItem("role")
+        //   }
+        // });
+        // setAcademicYears(academicYearsRes.data.academicYears || []);
+        
+        // Fetch all courses using the provided route
+        const coursesRes = await axios.get("http://localhost:5000/api/admin/get-courses", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Role: localStorage.getItem("role")
+          }
+        });
+        setAllCourses(coursesRes.data.courses || []);
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+        setMessage("Failed to load data. Please refresh the page.");
+        setMessageType("error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  const toggleDropdown = (title) => {
+    setActiveDropdown(activeDropdown === title ? "" : title);
+  };
+
+  const handleSelectCourse = async (event) => {
+    const courseId = event.target.value;
+    if (!courseId) {
+      setSelectedCourse(null);
+      setCourseData({
+        course_code: "",
+        course_name: "",
+        department: "",
+        credits: "",
+        semester: "",
+        batch: "",
+        max_seats: "",
+        faculty_id: "",
+        description: "",
+        academic_year_id: ""
+      });
+      return;
+    }
+    
+    // Find the selected course from our all courses list
+    const course = allCourses.find(c => c.id === parseInt(courseId));
+    if (course) {
+      setSelectedCourse(course);
+      setLoading(true);
+      
+      // Fetch detailed course information using the updated route
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/admin/course/${course.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Role: localStorage.getItem("role")
+            }
+          }
+        );
+
+        // Use the data structure from the updated route
+        const courseDetails = response.data;
+        
+        // Get the semester course offerings separately if needed
+        const offeringsResponse = await axios.get(
+          `http://localhost:5000/api/admin/course/${course.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Role: localStorage.getItem("role")
+            }
+          }
+        );
+        
+        const offering = offeringsResponse.data && offeringsResponse.data.offerings && 
+                          offeringsResponse.data.offerings.length > 0 ? 
+                          offeringsResponse.data.offerings[0] : null;
+
+        setCourseData({
+          course_code: courseDetails.course_code || "",
+          course_name: courseDetails.course_name || "",
+          department: courseDetails.department || "",
+          credits: courseDetails.credits || "",
+          semester: courseDetails.semester || "",
+          batch: courseDetails.batch || "",
+          max_seats: offering?.max_seats || 60,
+          faculty_id: courseDetails.faculty_id || "",
+          description: courseDetails.description || "",
+          academic_year_id: offering?.academic_year_id || ""
+        });
+
+        setMessage("");
+      } catch (error) {
+        console.error("Error fetching course details:", error);
+        setMessage("Failed to load course details. Please try again.");
+        setMessageType("error");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCourseData({ ...courseData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedCourse) {
+      setMessage("Please select a course first");
+      setMessageType("error");
+      return;
+    }
+
+    try {
+      // Convert any numeric strings to numbers before sending
+      const dataToSend = {
+        ...courseData,
+        credits: courseData.credits ? Number(courseData.credits) : undefined,
+        faculty_id: courseData.faculty_id ? Number(courseData.faculty_id) : undefined,
+        semester: courseData.semester ? Number(courseData.semester) : undefined,
+        max_seats: courseData.max_seats ? Number(courseData.max_seats) : undefined,
+        academic_year_id: courseData.academic_year_id ? Number(courseData.academic_year_id) : undefined
+      };
+
+      const response = await axios.put(
+        `http://localhost:5000/api/admin/edit-course/${selectedCourse.id}`,
+        dataToSend,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Role: localStorage.getItem("role")
+          }
+        }
+      );
+
+      setMessage(response.data.message || "Course updated successfully!");
+      setMessageType("success");
+      
+      // Refresh the courses list
+      const coursesRes = await axios.get("http://localhost:5000/api/admin/get-courses", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Role: localStorage.getItem("role")
+        }
+      });
+      setAllCourses(coursesRes.data.courses || []);
+      
+      // Reset selection
+      setSelectedCourse(null);
+      setCourseData({
+        course_code: "",
+        course_name: "",
+        department: "",
+        credits: "",
+        semester: "",
+        batch: "",
+        max_seats: "",
+        faculty_id: "",
+        description: "",
+        academic_year_id: ""
+      });
+    } catch (error) {
+      console.error("Error updating course:", error);
+      setMessage(
+        error.response?.data?.message ||
+        "Failed to update course. Please try again."
+      );
+      setMessageType("error");
+    }
+  };
 
   const navItems = [
     {
@@ -351,7 +240,7 @@ const EditCourse = () => {
     {
       title: "Manage Faculty",
       submenu: [
-        { label: "Add Faculty", path: "/admin/add-faculty"},
+        { label: "Add Faculty", path: "/admin/add-faculty" },
         { label: "Edit Faculty Details", path: "/admin/edit-faculty" },
         { label: "Remove Faculty", path: "/admin/remove-faculty" },
       ],
@@ -359,7 +248,7 @@ const EditCourse = () => {
     {
       title: "Manage Courses",
       submenu: [
-        { label: "Add Course", path :"/admin/add-course"},
+        { label: "Add Course", path: "/admin/add-course" },
         { label: "Edit Course Details", path: "/admin/edit-course" },
         { label: "Remove Course", path: "/admin/remove-course" },
       ],
@@ -374,173 +263,15 @@ const EditCourse = () => {
     },
   ];
 
-  const toggleDropdown = (title) => {
-    setActiveDropdown(activeDropdown === title ? "" : title);
-  };
-
-  // Fetch faculty list for dropdown
-  useEffect(() => {
-    const fetchFaculties = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/api/admin/get-faculty", {
-          headers: { Role: "admin" }
-        });
-        
-        if (response.data && response.data.faculty) {
-          setFacultyList(response.data.faculty);
-        }
-      } catch (error) {
-        console.error("Error fetching faculty list:", error);
-        setMessage("Failed to fetch faculty list: " + (error.response?.data?.message || error.message));
-        setMessageType("error");
-      }
-    };
-    
-    fetchFaculties();
-  }, []);
-  
-  // Fetch course list for dropdown
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/api/admin/get-courses", {
-          headers: { Role: "admin" }
-        });
-        
-        if (response.data && response.data.courses) {
-          setCourseList(response.data.courses);
-        }
-      } catch (error) {
-        console.error("Error fetching course list:", error);
-        setMessage("Failed to fetch course list: " + (error.response?.data?.message || error.message));
-        setMessageType("error");
-      }
-    };
-    
-    fetchCourses();
-  }, []);
-
-  // Fetch course data after ID is submitted
-  useEffect(() => {
-    const fetchCourseData = async () => {
-      if (courseId && idSubmitted) {
-        try {
-          setLoading(true);
-          setMessage("");
-          const response = await axios.get(`http://localhost:5000/api/admin/course/${courseId}`, {
-            headers: { 'Role': 'admin' }
-          });
-          
-          setcourseData({
-            course_code: response.data.course_code || "",
-            course_name: response.data.course_name || "",
-            credits: response.data.credits || "",
-            department: response.data.department || "",
-            faculty_id: response.data.faculty_id || "",
-            semester: response.data.semester || "",
-            batch: response.data.batch || ""
-          });
-          setMessageType("success");
-        } catch (error) {
-          console.error("Full error object:", error);
-          if (error.response) {
-            console.error("Error response data:", error.response.data);
-          }
-          setMessage("Failed to fetch course data: " + (error.response?.data?.message || error.message));
-          setMessageType("error");
-          setIdSubmitted(false);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-    
-    fetchCourseData();
-  }, [courseId, idSubmitted]);
-
-  const handleIdSubmit = (e) => {
-    e.preventDefault();
-    if (courseId.trim() === "") {
-      setMessage("Please enter a course ID");
-      setMessageType("error");
-      return;
-    }
-    setIdSubmitted(true);
-  };
-
-  const handleFieldSelectionChange = (e) => {
-    setFieldsToEdit({
-      ...fieldsToEdit,
-      [e.target.name]: e.target.checked
-    });
-  };
-
-  const handleChange = (e) => {
-    setcourseData({
-      ...courseData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Create update data including only the fields selected for editing
-    const updateData = {};
-    
-    Object.keys(fieldsToEdit).forEach(field => {
-      if (fieldsToEdit[field]) {
-        updateData[field] = courseData[field];
-      }
-    });
-    
-    // Only proceed if there's something to update
-    if (Object.keys(updateData).length === 0) {
-      setMessage("Please select at least one field to update");
-      setMessageType("error");
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      const response = await axios.put(
-        `http://localhost:5000/api/admin/edit-course/${courseId}`, 
-        updateData,
-        {
-          headers: { 'Role': 'admin' }
-        }
-      );
-      setMessage(response.data.message || "Course updated successfully");
-      setMessageType("success");
-      
-      // Reset form state after successful update
-      setTimeout(() => {
-        setIdSubmitted(false);
-        setCourseId("");
-        setFieldsToEdit({
-          course_code: false,
-          course_name: false,
-          credits: false,
-          department: false,
-          faculty_id: false,
-          semester: false,
-          batch: false
-        });
-        setMessage("");
-      }, 2000);
-    } catch (error) {
-      setMessage(error.response?.data?.message || "Failed to update course");
-      setMessageType("error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setIdSubmitted(false);
-    setCourseId("");
-    setMessage("");
-  };
+  const fields = [
+    { name: "course_code", label: "Course Code", placeholder: "e.g., CS101" },
+    { name: "course_name", label: "Course Name", placeholder: "Enter course name" },
+    { name: "department", label: "Department", placeholder: "e.g., CSE, IT" },
+    { name: "credits", label: "Credits", placeholder: "e.g., 3, 4", type: "number" },
+    { name: "faculty_id", label: "Faculty ID", placeholder: "Enter faculty ID", type: "number" },
+    { name: "max_seats", label: "Maximum Seats", placeholder: "e.g., 60", type: "number" },
+    { name: "description", label: "Description", placeholder: "Enter course description" }
+  ];
 
   return (
     <div className="flex h-screen w-screen">
@@ -613,262 +344,118 @@ const EditCourse = () => {
       {/* Main Content */}
       <div className="flex-1 bg-[#efeaf2] p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold mb-4">Edit Course Details</h3>
-          
+          <h3 className="text-xl font-semibold mb-4">Edit Course</h3>
           {message && (
             <div
               className={`mb-4 p-3 rounded ${
                 messageType === "success"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
               }`}
             >
               {message}
             </div>
           )}
-          
-          {!idSubmitted ? (
-            // Step 1: Enter Course ID or select from dropdown
-            <form onSubmit={handleIdSubmit} className="space-y-4">
-              <div>
-                <label className="font-medium mb-1 block">Select Course to Edit *</label>
-                <select 
-                  value={courseId} 
-                  onChange={(e) => setCourseId(e.target.value)} 
-                  className="p-2 border border-gray-300 rounded w-full"
-                >
-                  <option value="">-- Select a Course --</option>
-                  {courseList.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.course_code} - {course.course_name}
-                    </option>
-                  ))}
-                </select>
+
+          {/* Course Dropdown Selection */}
+          <div className="mb-6">
+            <label className="block font-medium mb-2">Select Course to Edit</label>
+            <select
+              value={selectedCourse?.id || ""}
+              onChange={handleSelectCourse}
+              className="w-full p-2 border border-gray-300 rounded"
+              disabled={loading}
+            >
+              <option value="">-- Select a Course --</option>
+              {allCourses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.course_code} - {course.course_name}
+                </option>
+              ))}
+            </select>
+            
+            {loading && <p className="mt-2 text-gray-600">Loading courses...</p>}
+          </div>
+
+          {/* Edit Form */}
+          {selectedCourse && (
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-2 gap-4">
+                {fields.map(({ name, label, placeholder, type }, i) => (
+                  <div key={i} className="flex flex-col">
+                    <label className="font-medium mb-1">{label}</label>
+                    <input
+                      type={type || "text"}
+                      name={name}
+                      value={courseData[name]}
+                      placeholder={placeholder}
+                      onChange={handleChange}
+                      className="p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                ))}
+
+                {/* Semester Selection Dropdown */}
+                <div className="flex flex-col">
+                  <label className="font-medium mb-1">Semester</label>
+                  <select
+                    name="semester"
+                    value={courseData.semester}
+                    onChange={handleChange}
+                    className="p-2 border border-gray-300 rounded"
+                  >
+                    <option value="">Select Semester</option>
+                    {semesterOptions.map((sem) => (
+                      <option key={sem} value={sem}>
+                        Semester {sem}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Batch Selection Dropdown */}
+                <div className="flex flex-col">
+                  <label className="font-medium mb-1">Batch</label>
+                  <select
+                    name="batch"
+                    value={courseData.batch}
+                    onChange={handleChange}
+                    className="p-2 border border-gray-300 rounded"
+                  >
+                    <option value="">Select Batch</option>
+                    {batchOptions.map((batch) => (
+                      <option key={batch} value={batch}>
+                        {batch}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Academic Year Selection Dropdown */}
+                <div className="flex flex-col">
+                  <label className="font-medium mb-1">Academic Year</label>
+                  <select
+                    name="academic_year_id"
+                    value={courseData.academic_year_id}
+                    onChange={handleChange}
+                    className="p-2 border border-gray-300 rounded"
+                  >
+                    <option value="">Select Academic Year</option>
+                    {academicYears.map((year) => (
+                      <option key={year.id} value={year.id}>
+                        {year.year_name} {year.is_current ? "(Current)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
               <button
                 type="submit"
                 className="mt-6 bg-[#5b21b6] text-white px-4 py-2 rounded shadow hover:bg-[#6b3abf] transition-colors"
-                disabled={loading}
               >
-                {loading ? "Loading..." : "Fetch Course Data"}
+                Update Course
               </button>
-            </form>
-          ) : (
-            // Step 2: Edit Course Data
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="bg-[#f4f0f9] p-4 rounded-md">
-                <h3 className="font-medium mb-2">Course Information</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <p><span className="font-medium">ID:</span> {courseId}</p>
-                  <p><span className="font-medium">Course Code:</span> {courseData.course_code}</p>
-                  <p><span className="font-medium">Course Name:</span> {courseData.course_name}</p>
-                  <p><span className="font-medium">Department:</span> {courseData.department}</p>
-                </div>
-              </div>
-              
-              {/* Field Selection Section */}
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="font-medium mb-3">Select Fields to Edit</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="editCourseCode"
-                      name="course_code"
-                      checked={fieldsToEdit.course_code}
-                      onChange={handleFieldSelectionChange}
-                      className="mr-2 h-4 w-4"
-                    />
-                    <label htmlFor="editCourseCode">Course Code</label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="editCourseName"
-                      name="course_name"
-                      checked={fieldsToEdit.course_name}
-                      onChange={handleFieldSelectionChange}
-                      className="mr-2 h-4 w-4"
-                    />
-                    <label htmlFor="editCourseName">Course Name</label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="editCredits"
-                      name="credits"
-                      checked={fieldsToEdit.credits}
-                      onChange={handleFieldSelectionChange}
-                      className="mr-2 h-4 w-4"
-                    />
-                    <label htmlFor="editCredits">Credits</label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="editDepartment"
-                      name="department"
-                      checked={fieldsToEdit.department}
-                      onChange={handleFieldSelectionChange}
-                      className="mr-2 h-4 w-4"
-                    />
-                    <label htmlFor="editDepartment">Department</label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="editFacultyId"
-                      name="faculty_id"
-                      checked={fieldsToEdit.faculty_id}
-                      onChange={handleFieldSelectionChange}
-                      className="mr-2 h-4 w-4"
-                    />
-                    <label htmlFor="editFacultyId">Faculty</label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="editSemester"
-                      name="semester"
-                      checked={fieldsToEdit.semester}
-                      onChange={handleFieldSelectionChange}
-                      className="mr-2 h-4 w-4"
-                    />
-                    <label htmlFor="editSemester">Semester</label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="editBatch"
-                      name="batch"
-                      checked={fieldsToEdit.batch}
-                      onChange={handleFieldSelectionChange}
-                      className="mr-2 h-4 w-4"
-                    />
-                    <label htmlFor="editBatch">Batch</label>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Edit Fields Section */}
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="font-medium mb-3">Edit Selected Fields</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {fieldsToEdit.course_code && (
-                    <div>
-                      <label className="font-medium mb-1 block">Course Code</label>
-                      <input
-                        type="text"
-                        name="course_code"
-                        value={courseData.course_code}
-                        onChange={handleChange}
-                        className="p-2 border border-gray-300 rounded w-full"
-                      />
-                    </div>
-                  )}
-                  
-                  {fieldsToEdit.course_name && (
-                    <div>
-                      <label className="font-medium mb-1 block">Course Name</label>
-                      <input
-                        type="text"
-                        name="course_name"
-                        value={courseData.course_name}
-                        onChange={handleChange}
-                        className="p-2 border border-gray-300 rounded w-full"
-                      />
-                    </div>
-                  )}
-                  
-                  {fieldsToEdit.credits && (
-                    <div>
-                      <label className="font-medium mb-1 block">Credits</label>
-                      <input
-                        type="number"
-                        name="credits"
-                        value={courseData.credits}
-                        onChange={handleChange}
-                        className="p-2 border border-gray-300 rounded w-full"
-                      />
-                    </div>
-                  )}
-                  
-                  {fieldsToEdit.department && (
-                    <div>
-                      <label className="font-medium mb-1 block">Department</label>
-                      <input
-                        type="text"
-                        name="department"
-                        value={courseData.department}
-                        onChange={handleChange}
-                        className="p-2 border border-gray-300 rounded w-full"
-                      />
-                    </div>
-                  )}
-                  
-                  {fieldsToEdit.faculty_id && (
-                    <div>
-                      <label className="font-medium mb-1 block">Faculty</label>
-                      <select
-                        name="faculty_id"
-                        value={courseData.faculty_id}
-                        onChange={handleChange}
-                        className="p-2 border border-gray-300 rounded w-full"
-                      >
-                        <option value="">Select Faculty</option>
-                        {facultyList.map((faculty) => (
-                          <option key={faculty.id} value={faculty.id}>
-                            {faculty.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                  
-                  {fieldsToEdit.semester && (
-                    <div>
-                      <label className="font-medium mb-1 block">Semester</label>
-                      <input
-                        type="number"
-                        name="semester"
-                        value={courseData.semester}
-                        onChange={handleChange}
-                        className="p-2 border border-gray-300 rounded w-full"
-                      />
-                    </div>
-                  )}
-                  
-                  {fieldsToEdit.batch && (
-                    <div>
-                      <label className="font-medium mb-1 block">Batch</label>
-                      <input
-                        type="text"
-                        name="batch"
-                        value={courseData.batch}
-                        onChange={handleChange}
-                        className="p-2 border border-gray-300 rounded w-full"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex justify-between pt-4">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded shadow hover:bg-gray-400 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#5b21b6] text-white px-4 py-2 rounded shadow hover:bg-[#6b3abf] transition-colors"
-                  disabled={loading}
-                >
-                  {loading ? "Updating..." : "Update Course"}
-                </button>
-              </div>
             </form>
           )}
         </div>

@@ -52,14 +52,14 @@ const StudentHomePage = () => {
       description: "View available courses and register for your desired courses effortlessly.",
       image: "/images/registration.jpg",
       id: "registration",
-      path: "/student/student-registration",
+      path: "/student/step-1-registration",
     },
     {
       title: "My Courses",
       description: "View and manage the courses you are currently enrolled in.",
       image: "/images/courses.jpg",
       id: "my-courses",
-      path: "/student/student-courses",
+      path: "/student/mycourses",
     },
     {
       title: "Academic Calendar",
@@ -70,10 +70,10 @@ const StudentHomePage = () => {
     },
     {
       title: "Fee Payment",
-      description: "Manage your fee payments and transaction history.",
+      description: "Pay your fees online securely and conveniently.",
       image: "/images/payment.jpg",
       id: "fee-payment",
-      path: "/student/fee-payment",
+      href: "https://payments.billdesk.com/bdcollect/pay?p1=6037&p2=15",
     },
     {
       title: "Announcements",
@@ -83,6 +83,14 @@ const StudentHomePage = () => {
       path: "/student/announcements",
     },
   ];
+
+  // Function to handle scrolling to element
+  const scrollToElement = (elementId) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   if (loading) {
     return (
@@ -117,9 +125,15 @@ const StudentHomePage = () => {
               <button
                 key={index}
                 className="text-gray-700 hover:text-[#49196c] focus:outline-none"
-                onClick={() =>
-                  section.path ? navigate(section.path) : document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth" })
-                }
+                onClick={() => {
+                  if (section.path) {
+                    navigate(section.path);
+                  } else if (section.href) {
+                    window.open(section.href, '_blank');
+                  } else {
+                    scrollToElement(section.id);
+                  }
+                }}
               >
                 {section.title}
               </button>
@@ -269,7 +283,13 @@ const StudentHomePage = () => {
               <p className="text-gray-600 mt-2">{section.description}</p>
               <button
                 className="mt-4 bg-[#49196c] text-white py-2 px-4 rounded-lg text-sm font-semibold hover:bg-[#3b1456] transition"
-                onClick={() => section.path ? navigate(section.path) : null}
+                onClick={() => {
+                  if (section.path) {
+                    navigate(section.path);
+                  } else if (section.href) {
+                    window.open(section.href, '_blank');
+                  }
+                }}
               >
                 Go to {section.title}
               </button>

@@ -7,7 +7,7 @@ import AddStudent from "./admin/AddStudent";
 import EditStudent from "./admin/EditStudent";
 import RemoveStudent from "./admin/RemoveStudent";
 import AddFaculty from "./admin/AddFaculty";
-import  EditFaculty  from "./admin/EditFaculty";
+import EditFaculty  from "./admin/EditFaculty";
 import RemoveFaculty from "./admin/RemoveFaculty";
 import AddCourse from "./admin/AddCourse";
 import EditCourse from "./admin/EditCourse";
@@ -20,10 +20,13 @@ import ApplicationDetails from "./faculty/ApplicationDetails";
 import ApprovedApplications from "./faculty/ApprovedApplications";
 import RejectedApplications from "./faculty/RejectedApplications";
 import StudentHomePage from "./student/StudentHomePage";
-import RegistrationPageCourseList from "./student/RegistrationPageCourseList";
+import FinalizeRegistration from "./student/RegistrationPageCourseList";
 import Step1Registration from "./student/Step1Registration";
 import Step2CourseSelection from "./student/Step2CourseSelection";
 import AnnouncementsPage from "./student/AnnouncementsPage";
+import AcademicCalendarPage from "./admin/academiccalander";
+import MyCourses from "./student/MyCourses";
+import StudentAcademicCalendarPage from "./student/academiccalendar";
 function App() {
   return (
     <Router>
@@ -49,11 +52,14 @@ function App() {
         <Route path="/faculty/application-details/:id" element={<ApplicationDetails />} />
         <Route path="/faculty/rejected-applications" element={<RejectedApplications />} />
         <Route path="/student/dashboard" element={<StudentHomePage />} />
-        <Route path="/student/student-registration" element={<RegistrationPageCourseList />} />
+        <Route path="/student/finalize_registration" element={<FinalizeRegistration />} />
         <Route path="/student/step-1-registration" element={<Step1Registration />} />
         <Route path="/student/step-2" element={<Step2CourseSelection />} />
         <Route path="/student/announcements" element={<AnnouncementsPage />} />
-        
+        <Route path="/student/mycourses" element={<MyCourses />} />
+        <Route path="/admin/academic-calendar" element={<AcademicCalendarPage />} />
+        <Route path="/student/academic-calendar" element={<StudentAcademicCalendarPage />} />
+        {/* Add more routes as needed */}
         </Routes>
      
 

@@ -1,317 +1,308 @@
 import express from 'express';
-import db from '../database/db.js'; // Ensure db is correctly imported
+import db from '../database/db.js';
 
 const router = express.Router();
 
-// Get all fee transactions with optional filters
+// Get all announcements with optional filters
+// In your announcements.js router file, update the GET route:
+
+// Get all announcements with optional filters
 router.get('/', async (req, res) => {
   try {
-    console.log('Fetching fee transactions...');
-    const { status, academicYearId, semester } = req.query;
+    const { visibility, importance, status } = req.query;
     
     // Build the SQL query with filters
     let sql = `
       SELECT 
-        ft.id, 
-        ft.student_id, 
-        s.name AS student_name,
-        ft.transaction_date, 
-        ft.bank_name, 
-        ft.amount, 
-        ft.reference_number, 
-        ft.status,
-        ft.semester,
-        ay.year_name AS academic_year
-      FROM fee_transactions ft
-      JOIN students s ON ft.student_id = s.student_id
-      JOIN academic_years ay ON ft.academic_year_id = ay.id
+        a.id,
+        a.title,
+        a.description,
+        a.form_link,
+        a.publication_date,
+        a.expiry_date,
+        a.visibility,
+        a.importance,
+        a.status,
+        admin.username as created_by
+      FROM announcements a
+      JOIN admin ON a.admin_id = admin.id
       WHERE 1=1
     `;
     
     const queryParams = [];
     
     // Add filters if provided
-    if (status && status !== 'All') {
-      sql += ' AND ft.status = ?';
+    if (status) {
+      sql += ' AND a.status = ?';
       queryParams.push(status);
+    } else {
+      sql += ' AND a.status = "active"';
     }
     
-    if (academicYearId) {
-      sql += ' AND ft.academic_year_id = ?';
-      queryParams.push(academicYearId);
+    // Handle comma-separated visibility values (like 'Students,All')
+    if (visibility && visibility !== 'all') {
+      // Split by comma and create IN clause
+      const visibilityValues = visibility.split(',');
+      if (visibilityValues.length > 0) {
+        sql += ' AND a.visibility IN (?)'; 
+        queryParams.push(visibilityValues);
+      }
     }
     
-    if (semester) {
-      sql += ' AND ft.semester = ?';
-      queryParams.push(semester);
+    if (importance && importance !== 'all') {
+      sql += ' AND a.importance = ?';
+      queryParams.push(importance);
     }
     
-    sql += ' ORDER BY ft.transaction_date DESC';
+    sql += ' ORDER BY a.publication_date DESC';
     
-    const [transactions] = await db.query(sql, queryParams);
-    console.log(`Found ${transactions.length} fee transactions`);
-    res.status(200).json(transactions);
+    const [announcements] = await db.query(sql, queryParams);
+    console.log(`Found ${announcements.length} announcements`);
+    res.status(200).json(announcements);
   } catch (error) {
-    console.error('Error fetching fee transactions:', error);
-    res.status(500).json({ error: 'Failed to fetch fee transactions' });
+    console.error('Error fetching announcements:', error);
+    res.status(500).json({ error: 'Failed to fetch announcements' });
   }
 });
 
-// Get fee transactions by filter parameters - IMPORTANT: This must come before /:id route
-router.get('/filter', async (req, res) => {
-  try {
-    const { status, academicYearId, semester } = req.query;
-    
-    // Build the SQL query with filters
-    let sql = `
-      SELECT 
-        ft.id, 
-        ft.student_id, 
-        s.name AS student_name,
-        ft.transaction_date, 
-        ft.bank_name, 
-        ft.amount, 
-        ft.reference_number, 
-        ft.status,
-        ft.semester,
-        ay.year_name AS academic_year
-      FROM fee_transactions ft
-      JOIN students s ON ft.student_id = s.student_id
-      JOIN academic_years ay ON ft.academic_year_id = ay.id
-      WHERE 1=1
-    `;
-    
-    const queryParams = [];
-    
-    // Add filters if provided
-    if (status && status !== 'All') {
-      sql += ' AND ft.status = ?';
-      queryParams.push(status);
-    }
-    
-    if (academicYearId) {
-      sql += ' AND ft.academic_year_id = ?';
-      queryParams.push(academicYearId);
-    }
-    
-    if (semester) {
-      sql += ' AND ft.semester = ?';
-      queryParams.push(semester);
-    }
-    
-    sql += ' ORDER BY ft.transaction_date DESC';
-    
-    const [transactions] = await db.query(sql, queryParams);
-    res.status(200).json(transactions);
-  } catch (error) {
-    console.error('Error fetching filtered fee transactions:', error);
-    res.status(500).json({ error: 'Failed to fetch fee transactions' });
-  }
-});
-
-// Get all academic years
-router.get('/academic-years', async (req, res) => {
-  try {
-    const [years] = await db.query('SELECT id, year_name, is_current FROM academic_years ORDER BY start_date DESC');
-    res.status(200).json(years);
-  } catch (error) {
-    console.error('Error fetching academic years:', error);
-    res.status(500).json({ error: 'Failed to fetch academic years' });
-  }
-});
-
-// GET a specific fee transaction
+// Get a specific announcement
 router.get('/:id', async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT 
-        ft.*, 
-        s.name AS student_name,
-        ay.year_name AS academic_year
-      FROM fee_transactions ft
-      JOIN students s ON ft.student_id = s.student_id
-      JOIN academic_years ay ON ft.academic_year_id = ay.id
-      WHERE ft.id = ?
+        a.*,
+        admin.username as created_by
+      FROM announcements a
+      JOIN admin ON a.admin_id = admin.id
+      WHERE a.id = ? AND a.status = 'active'
     `, [req.params.id]);
     
     if (rows.length === 0) {
-      return res.status(404).json({ error: 'Fee transaction not found' });
+      return res.status(404).json({ error: 'Announcement not found' });
     }
     
     res.status(200).json(rows[0]);
   } catch (error) {
-    console.error('Error fetching fee transaction:', error);
-    res.status(500).json({ error: 'Failed to fetch fee transaction' });
+    console.error('Error fetching announcement:', error);
+    res.status(500).json({ error: 'Failed to fetch announcement' });
   }
 });
 
-// POST create a new fee transaction
+// Create a new announcement
 router.post('/', async (req, res) => {
   try {
-    console.log('Creating fee transaction with data:', req.body);
     const { 
-      student_id,
-      academic_year_id,
-      semester,
-      transaction_date,
-      bank_name,
-      amount,
-      reference_number
+      title,
+      description,
+      form_link,
+      expiry_date,
+      visibility,
+      importance,
+      admin_id // Get admin_id from request body
     } = req.body;
     
     // Validate required fields
-    if (!student_id || !academic_year_id || !semester || !amount || !reference_number) {
+    if (!title || !description) {
       return res.status(400).json({ 
-        error: 'Student ID, academic year, semester, amount, and reference number are required' 
+        error: 'Title and description are required' 
       });
     }
 
-    // Insert the fee transaction
+    // Validate enum values against schema
+    const validImportanceValues = ['Normal', 'Important', 'Urgent'];
+    const validVisibilityValues = ['All', 'Faculty', 'Students'];
+    
+    if (importance && !validImportanceValues.includes(importance)) {
+      return res.status(400).json({
+        error: `Importance must be one of: ${validImportanceValues.join(', ')}`
+      });
+    }
+    
+    if (visibility && !validVisibilityValues.includes(visibility)) {
+      return res.status(400).json({
+        error: `Visibility must be one of: ${validVisibilityValues.join(', ')}`
+      });
+    }
+
+    // Use the admin_id from request body, or fallback to session if available
+    const actualAdminId = admin_id || req.session?.admin?.id || 1;
+
+    // Insert the announcement
     const [result] = await db.query(
-      `INSERT INTO fee_transactions (
-        student_id,
-        academic_year_id,
-        semester,
-        transaction_date,
-        bank_name,
-        amount,
-        reference_number,
+      `INSERT INTO announcements (
+        title,
+        description,
+        form_link,
+        publication_date,
+        expiry_date,
+        admin_id,
+        visibility,
+        importance,
         status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, 'active')`,
       [
-        student_id,
-        academic_year_id,
-        semester,
-        transaction_date || new Date(),
-        bank_name || null,
-        amount,
-        reference_number,
-        'Pending' // Default status
+        title,
+        description,
+        form_link || null,
+        expiry_date || null,
+        actualAdminId,
+        visibility || 'All',
+        importance || 'Normal'
       ]
     );
     
-    const newTransactionId = result.insertId;
+    const newAnnouncementId = result.insertId;
     
-    // Fetch the newly created fee transaction
+    // Fetch the newly created announcement
     const [rows] = await db.query(`
       SELECT 
-        ft.*, 
-        s.name AS student_name,
-        ay.year_name AS academic_year
-      FROM fee_transactions ft
-      JOIN students s ON ft.student_id = s.student_id
-      JOIN academic_years ay ON ft.academic_year_id = ay.id
-      WHERE ft.id = ?
-    `, [newTransactionId]);
+        a.*,
+        admin.username as created_by
+      FROM announcements a
+      JOIN admin ON a.admin_id = admin.id
+      WHERE a.id = ?
+    `, [newAnnouncementId]);
     
-    console.log('Successfully created fee transaction with ID:', newTransactionId);
+    console.log('Successfully created announcement with ID:', newAnnouncementId);
     res.status(201).json(rows[0]);
   } catch (error) {
-    console.error('Error creating fee transaction:', error);
-    res.status(500).json({ error: 'Failed to create fee transaction' });
+    console.error('Error creating announcement:', error);
+    res.status(500).json({ error: 'Failed to create announcement' });
   }
 });
 
-// PUT approve a fee transaction
-router.put('/:id/approve', async (req, res) => {
+// Update an announcement
+router.put('/:id', async (req, res) => {
   try {
-    console.log(`Approving fee transaction with ID: ${req.params.id}`);
     const { id } = req.params;
+    const { 
+      title,
+      description,
+      form_link,
+      expiry_date,
+      visibility,
+      importance,
+      status
+    } = req.body;
     
-    // Update the transaction status to 'Paid'
-    const [result] = await db.query('UPDATE fee_transactions SET status = "Paid" WHERE id = ?', [id]);
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Fee transaction not found' });
+    // Validate required fields
+    if (!title && !description && !visibility && !importance && !status && form_link === undefined && expiry_date === undefined) {
+      return res.status(400).json({ 
+        error: 'At least one field must be provided to update' 
+      });
     }
-    
-    // You may also want to update related tables, like semester_registrations
-    try {
-      await db.query(`
-        UPDATE semester_registrations sr
-        JOIN fee_transactions ft ON sr.student_id = ft.student_id 
-          AND sr.semester = ft.semester 
-          AND sr.academic_year_id = ft.academic_year_id
-        SET sr.status = 'Completed'
-        WHERE ft.id = ?
-      `, [id]);
-    } catch (innerError) {
-      console.warn('Could not update semester registration:', innerError);
-      // Continue execution as this is optional
-    }
-    
-    // Fetch the updated transaction
-    const [rows] = await db.query(`
-      SELECT 
-        ft.*, 
-        s.name AS student_name,
-        ay.year_name AS academic_year
-      FROM fee_transactions ft
-      JOIN students s ON ft.student_id = s.student_id
-      JOIN academic_years ay ON ft.academic_year_id = ay.id
-      WHERE ft.id = ?
-    `, [id]);
-    
-    console.log('Successfully approved fee transaction');
-    res.status(200).json(rows[0]);
-  } catch (error) {
-    console.error('Error approving fee transaction:', error);
-    res.status(500).json({ error: 'Failed to approve fee transaction' });
-  }
-});
 
-// PUT reject a fee transaction
-router.put('/:id/reject', async (req, res) => {
-  try {
-    console.log(`Rejecting fee transaction with ID: ${req.params.id}`);
-    const { id } = req.params;
-    const { rejection_reason } = req.body;
+    // Validate enum values against schema
+    if (importance) {
+      const validImportanceValues = ['Normal', 'Important', 'Urgent'];
+      if (!validImportanceValues.includes(importance)) {
+        return res.status(400).json({
+          error: `Importance must be one of: ${validImportanceValues.join(', ')}`
+        });
+      }
+    }
     
-    // Update the transaction status to 'Rejected'
+    if (visibility) {
+      const validVisibilityValues = ['All', 'Faculty', 'Students'];
+      if (!validVisibilityValues.includes(visibility)) {
+        return res.status(400).json({
+          error: `Visibility must be one of: ${validVisibilityValues.join(', ')}`
+        });
+      }
+    }
+    
+    if (status) {
+      const validStatusValues = ['active', 'inactive'];
+      if (!validStatusValues.includes(status)) {
+        return res.status(400).json({
+          error: `Status must be one of: ${validStatusValues.join(', ')}`
+        });
+      }
+    }
+    
+    // Build update query dynamically
+    let updateFields = [];
+    let queryParams = [];
+
+    if (title !== undefined) {
+      updateFields.push('title = ?');
+      queryParams.push(title);
+    }
+    
+    if (description !== undefined) {
+      updateFields.push('description = ?');
+      queryParams.push(description);
+    }
+    
+    if (form_link !== undefined) {
+      updateFields.push('form_link = ?');
+      queryParams.push(form_link);
+    }
+    
+    if (expiry_date !== undefined) {
+      updateFields.push('expiry_date = ?');
+      queryParams.push(expiry_date);
+    }
+    
+    if (visibility !== undefined) {
+      updateFields.push('visibility = ?');
+      queryParams.push(visibility);
+    }
+    
+    if (importance !== undefined) {
+      updateFields.push('importance = ?');
+      queryParams.push(importance);
+    }
+    
+    if (status !== undefined) {
+      updateFields.push('status = ?');
+      queryParams.push(status);
+    }
+    
+    // Add the ID to params
+    queryParams.push(id);
+
+    // Execute update query
     const [result] = await db.query(
-      'UPDATE fee_transactions SET status = "Rejected", rejection_reason = ? WHERE id = ?', 
-      [rejection_reason || null, id]
+      `UPDATE announcements SET ${updateFields.join(', ')} WHERE id = ?`,
+      queryParams
     );
     
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Fee transaction not found' });
+      return res.status(404).json({ error: 'Announcement not found' });
     }
     
-    // Fetch the updated transaction
+    // Fetch the updated announcement
     const [rows] = await db.query(`
       SELECT 
-        ft.*, 
-        s.name AS student_name,
-        ay.year_name AS academic_year
-      FROM fee_transactions ft
-      JOIN students s ON ft.student_id = s.student_id
-      JOIN academic_years ay ON ft.academic_year_id = ay.id
-      WHERE ft.id = ?
+        a.*,
+        admin.username as created_by
+      FROM announcements a
+      JOIN admin ON a.admin_id = admin.id
+      WHERE a.id = ?
     `, [id]);
     
-    console.log('Successfully rejected fee transaction');
+    console.log('Successfully updated announcement with ID:', id);
     res.status(200).json(rows[0]);
   } catch (error) {
-    console.error('Error rejecting fee transaction:', error);
-    res.status(500).json({ error: 'Failed to reject fee transaction' });
+    console.error('Error updating announcement:', error);
+    res.status(500).json({ error: 'Failed to update announcement' });
   }
 });
 
-// DELETE a fee transaction
+// Delete an announcement (soft delete by updating status)
 router.delete('/:id', async (req, res) => {
   try {
-    console.log(`Deleting fee transaction with ID: ${req.params.id}`);
-    const [result] = await db.query('DELETE FROM fee_transactions WHERE id = ?', [req.params.id]);
+    const [result] = await db.query('UPDATE announcements SET status = "inactive" WHERE id = ?', [req.params.id]);
     
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Fee transaction not found' });
+      return res.status(404).json({ error: 'Announcement not found' });
     }
     
-    console.log('Successfully deleted fee transaction');
-    res.status(200).json({ message: 'Fee transaction deleted successfully' });
+    res.status(200).json({ message: 'Announcement deleted successfully' });
   } catch (error) {
-    console.error('Error deleting fee transaction:', error);
-    res.status(500).json({ error: 'Failed to delete fee transaction' });
+    console.error('Error deleting announcement:', error);
+    res.status(500).json({ error: 'Failed to delete announcement' });
   }
 });
 

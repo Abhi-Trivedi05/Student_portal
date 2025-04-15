@@ -1,512 +1,4 @@
-// // import React, { useState, useEffect } from "react";
-// // import axios from "axios";
-
-// // const AddCourse = () => {
-// //   const [courseData, setCourseData] = useState({
-// //     course_code: "",
-// //     course_name: "",
-// //     credits: "",
-// //     department: "",
-// //     faculty_id: "",
-// //     semester: "",
-// //     batch: "",
-// //   });
-// //   const [facultyList, setFacultyList] = useState([]);
-// //   const [message, setMessage] = useState("");
-// //   const [messageType, setMessageType] = useState("error"); // "error" or "success"
-// //   const [isLoading, setIsLoading] = useState(false);
-
-// //   useEffect(() => {
-// //     const fetchFaculties = async () => {
-// //       const role = localStorage.getItem("role");
-
-// //       if (!role || role !== "admin") {
-// //         setMessage("Access denied. Admin role required.");
-// //         setMessageType("error");
-// //         return;
-// //       }
-
-// //       setIsLoading(true);
-// //       try {
-// //         const response = await axios.get("http://localhost:5000/api/admin/get-faculty", {
-// //           headers: {
-// //             'Role': role
-// //           }
-// //         });
-// //         setFacultyList(response.data.faculty);
-// //       } catch (error) {
-// //         console.error("Failed to fetch faculty list", error);
-// //         setMessage(error.response?.data?.message || "Failed to fetch faculty list. Please try again.");
-// //         setMessageType("error");
-// //       } finally {
-// //         setIsLoading(false);
-// //       }
-// //     };
-
-// //     fetchFaculties();
-// //   }, []);
-
-// //   const handleChange = (e) => {
-// //     const { name, value } = e.target;
-// //     setCourseData({ ...courseData, [name]: value });
-// //   };
-
-// //   const validateForm = () => {
-// //     // Check required fields based on backend validation
-// //     if (!courseData.course_code || !courseData.course_name || !courseData.credits || !courseData.department) {
-// //       setMessage("Please provide all required fields: course code, name, credits, and department.");
-// //       setMessageType("error");
-// //       return false;
-// //     }
-    
-// //     // If faculty is selected, ensure semester and batch are provided
-// //     if (courseData.faculty_id && (!courseData.semester || !courseData.batch)) {
-// //       setMessage("When assigning a faculty, please provide both semester and batch information.");
-// //       setMessageType("error");
-// //       return false;
-// //     }
-    
-// //     return true;
-// //   };
-
-// //   const handleSubmit = async (e) => {
-// //     e.preventDefault();
-
-// //     if (!validateForm()) {
-// //       return;
-// //     }
-
-// //     // Admin role check
-// //     const role = localStorage.getItem("role");
-// //     if (!role || role !== "admin") {
-// //       setMessage("Access denied. Admin role required.");
-// //       setMessageType("error");
-// //       return;
-// //     }
-
-// //     // Convert credits to a number if it's a string
-// //     const formattedData = {
-// //       ...courseData,
-// //       credits: Number(courseData.credits)
-// //     };
-    
-// //     // If faculty_id is empty string, set it to null
-// //     if (formattedData.faculty_id === "") {
-// //       formattedData.faculty_id = null;
-// //     } else {
-// //       // Make sure faculty_id is a number
-// //       formattedData.faculty_id = Number(formattedData.faculty_id);
-// //     }
-    
-// //     // Same for semester
-// //     if (formattedData.semester === "") {
-// //       formattedData.semester = null;
-// //     } else {
-// //       formattedData.semester = Number(formattedData.semester);
-// //     }
-
-// //     setIsLoading(true);
-// //     try {
-// //       const response = await axios.post(
-// //         "http://localhost:5000/api/admin/add-course", 
-// //         formattedData,
-// //         {
-// //           headers: {
-// //             'Role': role,
-// //             'Content-Type': 'application/json'
-// //           }
-// //         }
-// //       );
-// //       setMessage(response.data.message);
-// //       setMessageType("success");
-      
-// //       // Clear form on success
-// //       setCourseData({
-// //         course_code: "",
-// //         course_name: "",
-// //         credits: "",
-// //         department: "",
-// //         faculty_id: "",
-// //         semester: "",
-// //         batch: "",
-// //       });
-// //     } catch (error) {
-// //       console.error("Error adding course:", error);
-// //       setMessage(
-// //         error.response?.data?.message || 
-// //         "Failed to add course. Server returned: " + error.message
-// //       );
-// //       setMessageType("error");
-// //     } finally {
-// //       setIsLoading(false);
-// //     }
-// //   };
-
-// //   return (
-// //     <div className="p-4 max-w-lg mx-auto">
-// //       <h2 className="text-2xl font-bold mb-4">Add Course</h2>
-      
-// //       {message && (
-// //         <div className={`mb-4 p-3 rounded ${messageType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-500"}`}>
-// //           {message}
-// //         </div>
-// //       )}
-      
-// //       <form onSubmit={handleSubmit} className="space-y-4">
-// //         <div>
-// //           <label htmlFor="course_code" className="block text-sm font-medium text-gray-700">Course Code*</label>
-// //           <input
-// //             id="course_code"
-// //             type="text"
-// //             name="course_code"
-// //             placeholder="e.g., CS101"
-// //             value={courseData.course_code}
-// //             onChange={handleChange}
-// //             required
-// //             className="mt-1 border p-2 w-full rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
-// //           />
-// //         </div>
-        
-// //         <div>
-// //           <label htmlFor="course_name" className="block text-sm font-medium text-gray-700">Course Name*</label>
-// //           <input
-// //             id="course_name"
-// //             type="text"
-// //             name="course_name"
-// //             placeholder="e.g., Introduction to Computer Science"
-// //             value={courseData.course_name}
-// //             onChange={handleChange}
-// //             required
-// //             className="mt-1 border p-2 w-full rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
-// //           />
-// //         </div>
-        
-// //         <div>
-// //           <label htmlFor="credits" className="block text-sm font-medium text-gray-700">Credits*</label>
-// //           <input
-// //             id="credits"
-// //             type="number"
-// //             name="credits"
-// //             placeholder="e.g., 3"
-// //             value={courseData.credits}
-// //             onChange={handleChange}
-// //             required
-// //             min="1"
-// //             max="10"
-// //             className="mt-1 border p-2 w-full rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
-// //           />
-// //         </div>
-        
-// //         <div>
-// //           <label htmlFor="department" className="block text-sm font-medium text-gray-700">Department*</label>
-// //           <input
-// //             id="department"
-// //             type="text"
-// //             name="department"
-// //             placeholder="e.g., Computer Science"
-// //             value={courseData.department}
-// //             onChange={handleChange}
-// //             required
-// //             className="mt-1 border p-2 w-full rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
-// //           />
-// //         </div>
-
-// //         <div className="border-t pt-4 mt-4">
-// //           <h3 className="text-lg font-medium mb-2">Faculty Assignment (Optional)</h3>
-// //           <p className="text-sm text-gray-500 mb-4">If you assign a faculty to this course, you must provide both semester and batch information.</p>
-          
-// //           <div>
-// //             <label htmlFor="faculty_id" className="block text-sm font-medium text-gray-700">Faculty</label>
-// //             <select
-// //               id="faculty_id"
-// //               name="faculty_id"
-// //               value={courseData.faculty_id}
-// //               onChange={handleChange}
-// //               className="mt-1 border p-2 w-full rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
-// //             >
-// //               <option value="">Select Faculty (Optional)</option>
-// //               {isLoading ? (
-// //                 <option disabled>Loading faculty list...</option>
-// //               ) : (
-// //                 facultyList.map((faculty) => (
-// //                   <option key={faculty.id} value={faculty.id}>
-// //                     {faculty.name} - {faculty.department}
-// //                   </option>
-// //                 ))
-// //               )}
-// //             </select>
-// //           </div>
-
-// //           <div className={courseData.faculty_id ? "" : "opacity-50"}>
-// //             <label htmlFor="semester" className="block text-sm font-medium text-gray-700 mt-4">Semester</label>
-// //             <input
-// //               id="semester"
-// //               type="number"
-// //               name="semester"
-// //               placeholder="e.g., 1"
-// //               value={courseData.semester}
-// //               onChange={handleChange}
-// //               disabled={!courseData.faculty_id}
-// //               required={!!courseData.faculty_id}
-// //               min="1"
-// //               max="12"
-// //               className="mt-1 border p-2 w-full rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
-// //             />
-// //           </div>
-
-// //           <div className={courseData.faculty_id ? "" : "opacity-50"}>
-// //             <label htmlFor="batch" className="block text-sm font-medium text-gray-700 mt-4">Batch</label>
-// //             <input
-// //               id="batch"
-// //               type="text"
-// //               name="batch"
-// //               placeholder="e.g., 2023-2027"
-// //               value={courseData.batch}
-// //               onChange={handleChange}
-// //               disabled={!courseData.faculty_id}
-// //               required={!!courseData.faculty_id}
-// //               className="mt-1 border p-2 w-full rounded focus:ring-2 focus:ring-green-500 focus:border-green-500"
-// //             />
-// //           </div>
-// //         </div>
-
-// //         <button
-// //           type="submit"
-// //           disabled={isLoading}
-// //           className={`mt-6 p-3 w-full rounded transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-// //             isLoading 
-// //               ? "bg-gray-400 cursor-not-allowed" 
-// //               : "bg-green-500 hover:bg-green-600 text-white"
-// //           }`}
-// //         >
-// //           {isLoading ? "Adding Course..." : "Add Course"}
-// //         </button>
-// //       </form>
-// //     </div>
-// //   );
-// // };
-
-// // export default AddCourse;
-
-// import React, { useState, useEffect } from "react";
-// import axios from "axios";
-// import { NavLink } from "react-router-dom";
-
-// const AddCourse = () => {
-//   const [courseData, setCourseData] = useState({
-//     course_code: "",
-//     course_name: "",
-//     credits: "",
-//     department: "",
-//     faculty_id: "",
-//     semester: "",
-//     batch: "",
-//   });
-//   const [facultyList, setFacultyList] = useState([]);
-//   const [message, setMessage] = useState("");
-//   const [messageType, setMessageType] = useState("error");
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   useEffect(() => {
-//     const fetchFaculties = async () => {
-//       const role = localStorage.getItem("role");
-//       if (!role || role !== "admin") {
-//         setMessage("Access denied. Admin role required.");
-//         setMessageType("error");
-//         return;
-//       }
-
-//       setIsLoading(true);
-//       try {
-//         const response = await axios.get("http://localhost:5000/api/admin/get-faculty", {
-//           headers: { Role: role },
-//         });
-//         setFacultyList(response.data.faculty);
-//       } catch (error) {
-//         console.error("Failed to fetch faculty list", error);
-//         setMessage(error.response?.data?.message || "Failed to fetch faculty list.");
-//         setMessageType("error");
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-
-//     fetchFaculties();
-//   }, []);
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setCourseData({ ...courseData, [name]: value });
-//   };
-
-//   const validateForm = () => {
-//     if (!courseData.course_code || !courseData.course_name || !courseData.credits || !courseData.department) {
-//       setMessage("Please provide all required fields.");
-//       setMessageType("error");
-//       return false;
-//     }
-//     if (courseData.faculty_id && (!courseData.semester || !courseData.batch)) {
-//       setMessage("Semester and Batch are required when assigning a faculty.");
-//       setMessageType("error");
-//       return false;
-//     }
-//     return true;
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     if (!validateForm()) return;
-
-//     const role = localStorage.getItem("role");
-//     if (!role || role !== "admin") {
-//       setMessage("Access denied. Admin role required.");
-//       setMessageType("error");
-//       return;
-//     }
-
-//     const formattedData = {
-//       ...courseData,
-//       credits: Number(courseData.credits),
-//       faculty_id: courseData.faculty_id === "" ? null : Number(courseData.faculty_id),
-//       semester: courseData.semester === "" ? null : Number(courseData.semester),
-//     };
-
-//     setIsLoading(true);
-//     try {
-//       const response = await axios.post("http://localhost:5000/api/admin/add-course", formattedData, {
-//         headers: {
-//           Role: role,
-//           "Content-Type": "application/json",
-//         },
-//       });
-//       setMessage(response.data.message);
-//       setMessageType("success");
-//       setCourseData({
-//         course_code: "",
-//         course_name: "",
-//         credits: "",
-//         department: "",
-//         faculty_id: "",
-//         semester: "",
-//         batch: "",
-//       });
-//     } catch (error) {
-//       console.error("Error adding course:", error);
-//       setMessage(error.response?.data?.message || "Failed to add course.");
-//       setMessageType("error");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="flex min-h-screen bg-gray-100">
-//       {/* Sidebar */}
-//       <aside className="w-64 bg-gray-900 text-white p-6">
-//         <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
-//         <nav className="space-y-4">
-//           <NavLink to="/dashboard" className="block hover:text-green-400">Dashboard</NavLink>
-//           <NavLink to="/add-student" className="block hover:text-green-400">Add Student</NavLink>
-//           <NavLink to="/add-faculty" className="block hover:text-green-400">Add Faculty</NavLink>
-//           <NavLink to="/add-course" className="block text-green-400 font-semibold">Add Course</NavLink>
-//           <NavLink to="/manage" className="block hover:text-green-400">Manage</NavLink>
-//         </nav>
-//       </aside>
-
-//       {/* Main Content */}
-//       <main className="flex-1 p-10">
-//         <h1 className="text-3xl font-bold mb-6 text-gray-800">Add Course</h1>
-
-//         {message && (
-//           <div className={`mb-6 p-4 rounded ${messageType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
-//             {message}
-//           </div>
-//         )}
-
-//         <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md space-y-6 max-w-2xl">
-//           <div>
-//             <label className="block text-gray-700 mb-1">Course Code*</label>
-//             <input type="text" name="course_code" value={courseData.course_code} onChange={handleChange}
-//               placeholder="e.g., CS101" required
-//               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
-//           </div>
-
-//           <div>
-//             <label className="block text-gray-700 mb-1">Course Name*</label>
-//             <input type="text" name="course_name" value={courseData.course_name} onChange={handleChange}
-//               placeholder="e.g., Data Structures" required
-//               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
-//           </div>
-
-//           <div className="flex gap-4">
-//             <div className="w-1/2">
-//               <label className="block text-gray-700 mb-1">Credits*</label>
-//               <input type="number" name="credits" value={courseData.credits} onChange={handleChange}
-//                 placeholder="e.g., 4" min="1" max="10" required
-//                 className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
-//             </div>
-//             <div className="w-1/2">
-//               <label className="block text-gray-700 mb-1">Department*</label>
-//               <input type="text" name="department" value={courseData.department} onChange={handleChange}
-//                 placeholder="e.g., Computer Science" required
-//                 className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
-//             </div>
-//           </div>
-
-//           <hr className="my-4" />
-
-//           <h2 className="text-lg font-semibold text-gray-800">Faculty Assignment (Optional)</h2>
-//           <p className="text-sm text-gray-500 mb-3">If assigning a faculty, you must provide both semester and batch.</p>
-
-//           <div>
-//             <label className="block text-gray-700 mb-1">Faculty</label>
-//             <select name="faculty_id" value={courseData.faculty_id} onChange={handleChange}
-//               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-//               <option value="">Select Faculty (Optional)</option>
-//               {isLoading ? (
-//                 <option disabled>Loading faculty list...</option>
-//               ) : (
-//                 facultyList.map(faculty => (
-//                   <option key={faculty.id} value={faculty.id}>
-//                     {faculty.name} - {faculty.department}
-//                   </option>
-//                 ))
-//               )}
-//             </select>
-//           </div>
-
-//           <div className="flex gap-4">
-//             <div className="w-1/2">
-//               <label className="block text-gray-700 mb-1 mt-2">Semester</label>
-//               <input type="number" name="semester" value={courseData.semester} onChange={handleChange}
-//                 placeholder="e.g., 3" min="1" max="12"
-//                 disabled={!courseData.faculty_id}
-//                 className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50" />
-//             </div>
-//             <div className="w-1/2">
-//               <label className="block text-gray-700 mb-1 mt-2">Batch</label>
-//               <input type="text" name="batch" value={courseData.batch} onChange={handleChange}
-//                 placeholder="e.g., 2022-2026"
-//                 disabled={!courseData.faculty_id}
-//                 className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50" />
-//             </div>
-//           </div>
-
-//           <button type="submit"
-//             disabled={isLoading}
-//             className={`w-full py-3 mt-6 text-white rounded font-medium transition-colors ${
-//               isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
-//             }`}>
-//             {isLoading ? "Adding Course..." : "Add Course"}
-//           </button>
-//         </form>
-//       </main>
-//     </div>
-//   );
-// };
-
-// export default AddCourse;
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import axios from "axios";
@@ -521,19 +13,57 @@ const AddCourse = () => {
     credits: "",
     semester: "",
     batch: "",
+    max_seats: 60,
     faculty_id: "",
-    description: ""
+    description: "",
+    academic_year_id: ""
   });
+  const [academicYears, setAcademicYears] = useState([]);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const navigate = useNavigate();
+
+  // Semester options for dropdown selection
+  const semesterOptions = [1, 2, 3, 4, 5, 6, 7, 8];
+  // Batch options
+  const batchOptions = ["2020-2024", "2021-2025", "2022-2026", "2023-2027", "2024-2028"];
+
+  // Fetch academic years when component mounts
+  useEffect(() => {
+    const fetchAcademicYears = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        console.log("Token:", token ? "Token exists" : "No token found");
+        
+        console.log("Making API request to fetch academic years...");
+        const response = await axios.get("http://localhost:5000/api/admin/academic-years", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Role: localStorage.getItem("role")
+          }
+        });
+        
+        console.log("API Response:", response.data);
+        setAcademicYears(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching academic years:", error);
+        if (error.response) {
+          console.error("Response status:", error.response.status);
+          console.error("Response data:", error.response.data);
+        }
+      }
+    };
+  
+    fetchAcademicYears();
+  }, []);
 
   const toggleDropdown = (title) => {
     setActiveDropdown(activeDropdown === title ? "" : title);
   };
 
   const handleChange = (e) => {
-    setCourseData({ ...courseData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setCourseData({ ...courseData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -547,17 +77,29 @@ const AddCourse = () => {
       return;
     }
 
-    // Validate required fields according to backend requirements
-    if (!courseData.course_code || !courseData.course_name || !courseData.credits || !courseData.department) {
+    // Updated validation according to backend requirements
+    if (!courseData.course_code || !courseData.course_name || !courseData.credits || 
+        !courseData.department || !courseData.faculty_id || 
+        !courseData.semester || !courseData.batch || !courseData.academic_year_id) {
       setMessageType("error");
-      setMessage("Please provide all required fields: course code, name, credits, and department.");
+      setMessage("Please provide all required fields: course code, name, credits, department, faculty ID, semester, batch, and academic year.");
       return;
     }
 
     try {
+      // Convert any numeric strings to numbers before sending
+      const dataToSend = {
+        ...courseData,
+        credits: Number(courseData.credits),
+        faculty_id: Number(courseData.faculty_id),
+        semester: Number(courseData.semester),
+        max_seats: Number(courseData.max_seats),
+        academic_year_id: Number(courseData.academic_year_id)
+      };
+
       const response = await axios.post(
         "http://localhost:5000/api/admin/add-course",
-        courseData,
+        dataToSend,
         {
           headers: {
             Role: role,
@@ -574,10 +116,13 @@ const AddCourse = () => {
         credits: "",
         semester: "",
         batch: "",
+        max_seats: 60,
         faculty_id: "",
-        description: ""
+        description: "",
+        academic_year_id: ""
       });
     } catch (error) {
+      console.error("Error details:", error);
       setMessageType("error");
       setMessage(
         error.response
@@ -627,9 +172,8 @@ const AddCourse = () => {
     { name: "course_name", label: "Course Name *", placeholder: "Enter course name" },
     { name: "department", label: "Department *", placeholder: "e.g., CSE, IT" },
     { name: "credits", label: "Credits *", placeholder: "e.g., 3, 4", type: "number" },
-    { name: "semester", label: "Semester", placeholder: "e.g., 1, 2, 3", type: "number" },
-    { name: "batch", label: "Batch", placeholder: "e.g., 2023-27" },
-    { name: "faculty_id", label: "Faculty ID", placeholder: "Enter faculty ID" },
+    { name: "faculty_id", label: "Faculty ID *", placeholder: "Enter faculty ID", type: "number" },
+    { name: "max_seats", label: "Maximum Seats", placeholder: "e.g., 60", type: "number", value: courseData.max_seats },
     { name: "description", label: "Description", placeholder: "Enter course description" }
   ];
 
@@ -718,13 +262,13 @@ const AddCourse = () => {
           )}
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-4">
-              {fields.map(({ name, label, placeholder, type }, i) => (
+              {fields.map(({ name, label, placeholder, type, value }, i) => (
                 <div key={i} className="flex flex-col">
                   <label className="font-medium mb-1">{label}</label>
                   <input
                     type={type || "text"}
                     name={name}
-                    value={courseData[name]}
+                    value={value !== undefined ? value : courseData[name]}
                     placeholder={placeholder}
                     onChange={handleChange}
                     className="p-2 border border-gray-300 rounded"
@@ -732,6 +276,63 @@ const AddCourse = () => {
                   />
                 </div>
               ))}
+              
+              {/* Semester Selection Dropdown */}
+              <div className="flex flex-col">
+                <label className="font-medium mb-1">Semester *</label>
+                <select
+                  name="semester"
+                  value={courseData.semester}
+                  onChange={handleChange}
+                  className="p-2 border border-gray-300 rounded"
+                  required
+                >
+                  <option value="">Select Semester</option>
+                  {semesterOptions.map((sem) => (
+                    <option key={sem} value={sem}>
+                      Semester {sem}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Batch Selection Dropdown */}
+              <div className="flex flex-col">
+                <label className="font-medium mb-1">Batch *</label>
+                <select
+                  name="batch"
+                  value={courseData.batch}
+                  onChange={handleChange}
+                  className="p-2 border border-gray-300 rounded"
+                  required
+                >
+                  <option value="">Select Batch</option>
+                  {batchOptions.map((batch) => (
+                    <option key={batch} value={batch}>
+                      {batch}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Academic Year Selection Dropdown */}
+              <div className="flex flex-col">
+                <label className="font-medium mb-1">Academic Year *</label>
+                <select
+                  name="academic_year_id"
+                  value={courseData.academic_year_id}
+                  onChange={handleChange}
+                  className="p-2 border border-gray-300 rounded"
+                  required
+                >
+                  <option value="">Select Academic Year</option>
+                  {academicYears.map((year) => (
+                    <option key={year.id} value={year.id}>
+                      {year.year_name} {year.is_current ? "(Current)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <button
               type="submit"

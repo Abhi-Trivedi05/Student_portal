@@ -8,7 +8,10 @@ import adminRoutes from '../routes/adminRoutes.js';
 import announmentroutes from '../routes/announcementRoutes.js';
 import feeRoutes from '../routes/feeapprovalRoutes.js';
 import facultyRoutes from '../routes/facultyRoutes.js'; 
-import studentRoutes from '../routes/studentRoutes.js';  // Import student routes
+import studentRoutes from '../routes/studentRoutes.js';
+import academicroutes from '../routes/academicroutes.js'; 
+
+// import finalizeRegistration from '../routes/finalizeregistration.js';  // Import student routes
 dotenv.config();  // Initialize dotenv to read .env files
 
 const app = express();
@@ -26,6 +29,8 @@ app.use('/api/announcements', announmentroutes);
 app.use('/api/approval',feeRoutes);
 app.use('/api/faculty', facultyRoutes);
 app.use('/api/student', studentRoutes);
+app.use('/api/academic-calendar', academicroutes);
+// app.use('/api/finalize-registration', finalizeRegistration);
 
 // Test database connection
 app.get("/api/test-db", async (req, res) => {

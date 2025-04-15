@@ -53,7 +53,7 @@ router.get('/fee-transactions', async (req, res) => {
     res.json(transactions);
   } catch (error) {
     console.error('Error fetching fee transactions:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 
@@ -106,7 +106,7 @@ router.get('/academic-years', async (req, res) => {
     res.json(years);
   } catch (error) {
     console.error('Error fetching academic years:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 
@@ -114,6 +114,11 @@ router.get('/academic-years', async (req, res) => {
 router.put('/fee-transactions/:id/approve', async (req, res) => {
   try {
     const { id } = req.params;
+    const { admin_id } = req.body; // Admin's ID in the request
+    
+    if (!admin_id) {
+      return res.status(400).json({ message: 'Admin ID is required' });
+    }
     
     // Start a transaction
     await db.query('START TRANSACTION');
@@ -121,20 +126,31 @@ router.put('/fee-transactions/:id/approve', async (req, res) => {
     // Update the transaction status to 'Paid'
     await db.query('UPDATE fee_transactions SET status = "Paid" WHERE id = ?', [id]);
     
+    // Insert a record in fee_approvals table
+    await db.query(`
+      INSERT INTO fee_approvals (
+        fee_transaction_id, 
+        admin_id, 
+        approval_date, 
+        status, 
+        remarks
+      ) VALUES (?, ?, NOW(), 'Approved', 'Payment approved')
+    `, [id, admin_id]);
+    
     // Get the transaction details to update semester_registrations if needed
     const [transaction] = await db.query(
       'SELECT student_id, semester, academic_year_id FROM fee_transactions WHERE id = ?', 
       [id]
     );
     
-    if (transaction.length > 0) {
-      // Update the semester_registrations status
-      await db.query(`
-        UPDATE semester_registrations 
-        SET status = 'Completed' 
-        WHERE student_id = ? AND semester = ? AND academic_year_id = ?
-      `, [transaction[0].student_id, transaction[0].semester, transaction[0].academic_year_id]);
-    }
+    // if (transaction.length > 0) {
+    //   // Update the semester_registrations status
+    //   await db.query(`
+    //     UPDATE semester_registrations 
+    //     SET status = 'Completed' 
+    //     WHERE student_id = ? AND semester = ? AND academic_year_id = ?
+    //   `, [transaction[0].student_id, transaction[0].semester, transaction[0].academic_year_id]);
+    // }
     
     // Commit the transaction
     await db.query('COMMIT');
@@ -144,29 +160,47 @@ router.put('/fee-transactions/:id/approve', async (req, res) => {
     // Rollback on error
     await db.query('ROLLBACK');
     console.error('Error approving fee payment:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 
 // Reject a fee transaction
+// Reject a fee transaction
 router.put('/fee-transactions/:id/reject', async (req, res) => {
   try {
     const { id } = req.params;
-    const { rejection_reason } = req.body;
+    const { admin_id, reason } = req.body;  // Add reason to destructuring
     
-    if (!rejection_reason) {
-      return res.status(400).json({ message: 'Rejection reason is required' });
+    if (!admin_id) {
+      return res.status(400).json({ message: 'Admin ID is required' });
     }
     
+    // Start transaction
+    await db.query('START TRANSACTION');
+    
     // Update the fee transaction to add rejection reason and set status
-    await db.query('UPDATE fee_transactions SET status = "Rejected", rejection_reason = ? WHERE id = ?', 
-      [rejection_reason, id]
-    );
+    await db.query('UPDATE fee_transactions SET status = "Rejected" WHERE id = ?', [id]);
+  
+    // Insert a record in fee_approvals table for rejection
+    await db.query(`
+      INSERT INTO fee_approvals (
+        fee_transaction_id, 
+        admin_id, 
+        approval_date, 
+        status,
+        remarks
+      ) VALUES (?, ?, NOW(), 'Rejected', ?)
+    `, [id, admin_id, reason || 'Payment rejected']);  // Include reason in query
+    
+    // Commit transaction
+    await db.query('COMMIT');
     
     res.json({ message: 'Fee payment rejected successfully' });
   } catch (error) {
+    // Rollback on error
+    await db.query('ROLLBACK');
     console.error('Error rejecting fee payment:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 

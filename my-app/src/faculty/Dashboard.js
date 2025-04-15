@@ -1,267 +1,7 @@
-// import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
-// import axios from "axios";
-
-// const FacultyAdvisorDashboard = () => {
-//   const navigate = useNavigate();
-//   const [applications, setApplications] = useState([]);
-//   const [stats, setStats] = useState({
-//     total: 0,
-//     pending: 0,
-//     approved: 0,
-//     rejected: 0
-//   });
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-  
-//   // Assume faculty ID is stored in localStorage after login
-//   const facultyId = localStorage.getItem('facultyId') || 1; // Default to 1 for testing
-
-//   useEffect(() => {
-//     // Fetch applications data
-//     const fetchData = async () => {
-//       try {
-//         setLoading(true);
-        
-//         // Fetch applications
-//         const applicationsRes = await axios.get(`/api/faculty/${facultyId}/applications`);
-//         setApplications(applicationsRes.data);
-        
-//         // Fetch statistics
-//         const statsRes = await axios.get(`/api/faculty/${facultyId}/application-stats`);
-//         setStats(statsRes.data);
-        
-//         setLoading(false);
-//       } catch (err) {
-//         console.error("Error fetching data:", err);
-//         setError("Failed to load data. Please try again later.");
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchData();
-//   }, [facultyId]);
-
-//   // Function to handle application approval
-//   const handleApprove = async (id) => {
-//     try {
-//       await axios.put(`/api/faculty/applications/${id}`, { status: 'Completed' });
-      
-//       // Update local state
-//       setApplications(
-//         applications.map(app => 
-//           app.id === id ? {...app, status: "Completed"} : app
-//         )
-//       );
-      
-//       // Update statistics
-//       setStats({
-//         ...stats,
-//         pending: stats.pending - 1,
-//         approved: stats.approved + 1
-//       });
-//     } catch (err) {
-//       console.error("Error approving application:", err);
-//       setError("Failed to approve application. Please try again.");
-//     }
-//   };
-
-//   // Function to handle application rejection
-//   const handleReject = async (id) => {
-//     try {
-//       await axios.put(`/api/faculty/applications/${id}`, { status: 'Failed' });
-      
-//       // Update local state
-//       setApplications(
-//         applications.map(app => 
-//           app.id === id ? {...app, status: "Failed"} : app
-//         )
-//       );
-      
-//       // Update statistics
-//       setStats({
-//         ...stats,
-//         pending: stats.pending - 1,
-//         rejected: stats.rejected + 1
-//       });
-//     } catch (err) {
-//       console.error("Error rejecting application:", err);
-//       setError("Failed to reject application. Please try again.");
-//     }
-//   };
-
-//   // Filter applications by status
-//   const pendingApplications = applications.filter(app => app.status === "In Progress");
-//   const approvedApplications = applications.filter(app => app.status === "Completed");
-//   const rejectedApplications = applications.filter(app => app.status === "Failed");
-
-//   // Fee status color mapping
-//   const getFeeStatusColor = (status) => {
-//     switch(status) {
-//       case "Paid": return "bg-green-200 text-green-800";
-//       case "Unpaid": return "bg-red-200 text-red-800";
-//       case "Partial": return "bg-yellow-200 text-yellow-800";
-//       default: return "bg-gray-200 text-gray-800";
-//     }
-//   };
-
-//   // Status color mapping
-//   const getStatusColor = (status) => {
-//     switch(status) {
-//       case "Completed": return "bg-green-200 text-green-800";
-//       case "Failed": return "bg-red-200 text-red-800";
-//       case "In Progress": return "bg-yellow-200 text-yellow-800";
-//       default: return "bg-gray-200 text-gray-800";
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="flex justify-center items-center min-h-screen">
-//         <div className="text-2xl">Loading...</div>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="flex justify-center items-center min-h-screen">
-//         <div className="text-xl text-red-600">{error}</div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4">
-//       <h2 className="text-3xl font-bold mb-6">Faculty Advisor Dashboard</h2>
-      
-//       {/* Statistics Summary */}
-//       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full max-w-6xl mb-6">
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-lg font-medium text-gray-600">Total Applications</div>
-//           <div className="text-3xl font-bold">{stats.total}</div>
-//         </div>
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-lg font-medium text-gray-600">Pending</div>
-//           <div className="text-3xl font-bold">{stats.pending}</div>
-//         </div>
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-lg font-medium text-gray-600">Approved</div>
-//           <div className="text-3xl font-bold">{stats.approved}</div>
-//         </div>
-//         <div className="bg-white p-4 rounded-lg shadow-md">
-//           <div className="text-lg font-medium text-gray-600">Rejected</div>
-//           <div className="text-3xl font-bold">{stats.rejected}</div>
-//         </div>
-//       </div>
-
-//       {/* Action Buttons */}
-//       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-8">
-//         <button
-//           onClick={() => navigate("/faculty/pending-applications")}
-//           className="bg-yellow-500 text-white p-4 rounded-lg shadow-md hover:bg-yellow-600"
-//         >
-//           Pending Applications ({pendingApplications.length})
-//         </button>
-    
-//       </div>
-//       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-8">
-//         <button
-//           onClick={() => navigate("/faculty/approved-applications")}
-//           className="bg-yellow-500 text-white p-4 rounded-lg shadow-md hover:bg-yellow-600"
-//         >
-//           Approved Applications ({approvedApplications.length})
-//         </button>
-    
-//       </div>
-//       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-8">
-//         <button
-//           onClick={() => navigate("/faculty/rejected-applications")}
-//           className="bg-yellow-500 text-white p-4 rounded-lg shadow-md hover:bg-yellow-600"
-//         >
-//           Rejected Applications ({rejectedApplications.length})
-//         </button>
-    
-//       </div>
-
-//       {/* Applications Table */}
-//       <div className="w-full max-w-6xl bg-white rounded-lg shadow-md p-6">
-//         <h3 className="text-xl font-bold mb-4">Student Registration Applications</h3>
-        
-//         <div className="overflow-x-auto">
-//           <table className="w-full border-collapse">
-//             <thead>
-//               <tr className="bg-gray-50">
-//                 <th className="border p-2 text-left">Name</th>
-//                 <th className="border p-2 text-left">Registration ID</th>
-//                 <th className="border p-2 text-left">Course</th>
-//                 <th className="border p-2 text-left">Fee Status</th>
-//                 <th className="border p-2 text-left">Fee Amount</th>
-//                 <th className="border p-2 text-left">Date</th>
-//                 <th className="border p-2 text-left">Status</th>
-//                 <th className="border p-2 text-left">Actions</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {applications.map((app) => (
-//                 <tr key={app.id} className="hover:bg-gray-50">
-//                   <td className="border p-2">{app.name}</td>
-//                   <td className="border p-2">{app.registrationId}</td>
-//                   <td className="border p-2">{app.course}</td>
-//                   <td className="border p-2">
-//                     <span className={`px-2 py-1 rounded text-sm ${getFeeStatusColor(app.feeStatus)}`}>
-//                       {app.feeStatus}
-//                     </span>
-//                   </td>
-//                   <td className="border p-2">{app.feeAmount}</td>
-//                   <td className="border p-2">{app.applicationDate}</td>
-//                   <td className="border p-2">
-//                     <span className={`px-2 py-1 rounded text-sm ${getStatusColor(app.status)}`}>
-//                       {app.status === 'In Progress' ? 'Pending' : app.status}
-//                     </span>
-//                   </td>
-//                   <td className="border p-2">
-//                     {app.status === 'In Progress' ? (
-//                       <div className="flex space-x-2">
-//                         <button
-//                           onClick={() => handleApprove(app.id)}
-//                           className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 text-sm"
-//                         >
-//                           Approve
-//                         </button>
-//                         <button
-//                           onClick={() => handleReject(app.id)}
-//                           className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-sm"
-//                         >
-//                           Reject
-//                         </button>
-//                       </div>
-//                     ) : (
-//                       <button
-//                         onClick={() => navigate(`/faculty/application-details/${app.id}`)}
-//                         className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-sm"
-//                       >
-//                         View Details
-//                       </button>
-//                     )}
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-//       </div>
-
-//     </div>
-//   );
-// };
-
-// export default FacultyAdvisorDashboard;
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { User, BookOpen, Clock, CheckCircle, XCircle } from "lucide-react";
+import { User, BookOpen, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 const FacultyAdvisorDashboard = () => {
   const navigate = useNavigate();
@@ -275,17 +15,26 @@ const FacultyAdvisorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLogout, setShowLogout] = useState(false);
+  const [expandedApplication, setExpandedApplication] = useState(null);
+  const [notification, setNotification] = useState(null);
   
-  const facultyId = localStorage.getItem('facultyId') || 1;
+  // Assume faculty ID is stored in localStorage after login
+  const facultyId = localStorage.getItem('facultyId') || 1; // Default to 1 for testing
 
   useEffect(() => {
+    // Fetch applications data
     const fetchData = async () => {
       try {
         setLoading(true);
+        
+        // Fetch applications - update endpoint to match backend
         const applicationsRes = await axios.get(`/api/faculty/${facultyId}/applications`);
-        const statsRes = await axios.get(`/api/faculty/${facultyId}/application-stats`);
         setApplications(applicationsRes.data);
+        
+        // Fetch statistics - update endpoint to match backend
+        const statsRes = await axios.get(`/api/faculty/${facultyId}/application-stats`);
         setStats(statsRes.data);
+        
         setLoading(false);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -293,56 +42,109 @@ const FacultyAdvisorDashboard = () => {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [facultyId]);
 
-  const handleApprove = async (id) => {
+  // Function to handle application approval
+  const handleApprove = async (id, feeStatus) => {
     try {
+      if (feeStatus !== 'Approved') {
+        setNotification({
+          type: 'error',
+          message: 'Cannot approve registration when fee status is pending'
+        });
+        setTimeout(() => setNotification(null), 5000);
+        return;
+      }
+      
+      // Update endpoint to match backend API structure
       await axios.put(`/api/faculty/applications/${id}`, { status: 'Completed' });
-      setApplications(applications.map(app => 
-        app.id === id ? {...app, status: "Completed"} : app
-      ));
+      
+      // Update local state
+      setApplications(
+        applications.map(app => 
+          app.id === id ? {...app, status: "Completed"} : app
+        )
+      );
+      
+      // Update statistics
       setStats({
         ...stats,
         pending: stats.pending - 1,
         approved: stats.approved + 1
       });
+      
+      setNotification({
+        type: 'success',
+        message: 'Application approved successfully'
+      });
+      setTimeout(() => setNotification(null), 3000);
     } catch (err) {
       console.error("Error approving application:", err);
-      setError("Failed to approve application. Please try again.");
+      setNotification({
+        type: 'error',
+        message: err.response?.data?.message || 'Failed to approve application. Please try again.'
+      });
+      setTimeout(() => setNotification(null), 5000);
     }
   };
 
+  // Function to handle application rejection
   const handleReject = async (id) => {
     try {
+      // Update endpoint to match backend API structure
       await axios.put(`/api/faculty/applications/${id}`, { status: 'Failed' });
-      setApplications(applications.map(app => 
-        app.id === id ? {...app, status: "Failed"} : app
-      ));
+      
+      // Update local state
+      setApplications(
+        applications.map(app => 
+          app.id === id ? {...app, status: "Failed"} : app
+        )
+      );
+      
+      // Update statistics
       setStats({
         ...stats,
         pending: stats.pending - 1,
         rejected: stats.rejected + 1
       });
+      
+      setNotification({
+        type: 'success',
+        message: 'Application rejected successfully'
+      });
+      setTimeout(() => setNotification(null), 3000);
     } catch (err) {
       console.error("Error rejecting application:", err);
-      setError("Failed to reject application. Please try again.");
+      setNotification({
+        type: 'error',
+        message: 'Failed to reject application. Please try again.'
+      });
+      setTimeout(() => setNotification(null), 5000);
     }
   };
 
+  // Toggle expanded view of an application
+  const toggleExpandedView = (id) => {
+    setExpandedApplication(expandedApplication === id ? null : id);
+  };
+
+  // Filter applications by status
   const pendingApplications = applications.filter(app => app.status === "In Progress");
   const approvedApplications = applications.filter(app => app.status === "Completed");
   const rejectedApplications = applications.filter(app => app.status === "Failed");
 
+  // Fee status color mapping
   const getFeeStatusColor = (status) => {
     const colors = {
-      "Paid": { bg: '#dcfce7', text: '#166534' },
-      "Unpaid": { bg: '#fee2e2', text: '#991b1b' },
-      "Partial": { bg: '#fef9c3', text: '#854d0e' },
+      "Approved": { bg: '#dcfce7', text: '#166534' },
+      "Pending": { bg: '#fee2e2', text: '#991b1b' },
     };
     return colors[status] || { bg: '#f3f4f6', text: '#374151' };
   };
 
+  // Status color mapping
   const getStatusColor = (status) => {
     const colors = {
       "Completed": { bg: '#dcfce7', text: '#166534' },
@@ -383,7 +185,6 @@ const FacultyAdvisorDashboard = () => {
       display: 'flex',
       flexDirection: 'column',
       minHeight: '100vh',
-      
       backgroundColor: '#efeaf2',
       margin: 0,
       padding: 0,
@@ -438,19 +239,17 @@ const FacultyAdvisorDashboard = () => {
               cursor: 'pointer',
             }}
           >
-            <img
-              src="/profile-icon.png"
-              alt="Profile"
-              style={{
-                height: '24px',
-                width: '24px',
-                borderRadius: '50%',
-              }}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='8' r='5'/><path d='M20 21v-2a7 7 0 0 0-14 0v2'/></svg>";
-              }}
-            />
+            <div style={{
+              height: '24px',
+              width: '24px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#e5e7eb'
+            }}>
+              <User size={16} color="#374151" />
+            </div>
           </button>
           {showLogout && (
             <div style={{
@@ -466,7 +265,10 @@ const FacultyAdvisorDashboard = () => {
               zIndex: 1000,
             }}>
               <button
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  localStorage.removeItem('facultyId');
+                  navigate("/");
+                }}
                 style={{
                   width: '100%',
                   textAlign: 'left',
@@ -487,6 +289,31 @@ const FacultyAdvisorDashboard = () => {
           )}
         </div>
       </nav>
+
+      {/* Notification */}
+      {notification && (
+        <div style={{
+          position: 'fixed',
+          top: '60px',
+          right: '20px',
+          padding: '12px 16px',
+          borderRadius: '6px',
+          zIndex: 1100,
+          backgroundColor: notification.type === 'success' ? '#dcfce7' : '#fee2e2',
+          color: notification.type === 'success' ? '#166534' : '#991b1b',
+          boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          {notification.type === 'success' ? (
+            <CheckCircle size={18} />
+          ) : (
+            <AlertCircle size={18} />
+          )}
+          <span>{notification.message}</span>
+        </div>
+      )}
 
       {/* Main Content */}
       <div style={{ flex: 1, padding: '24px' }}>
@@ -630,7 +457,7 @@ const FacultyAdvisorDashboard = () => {
             marginBottom: '16px',
             color: '#1f2937'
           }}>
-            Recent Applications
+            Registration Applications
           </h3>
           
           <div style={{ overflowX: 'auto' }}>
@@ -643,120 +470,205 @@ const FacultyAdvisorDashboard = () => {
                 <tr style={{ backgroundColor: '#f9fafb' }}>
                   <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Name</th>
                   <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Registration ID</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Course</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Programme</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Batch</th>
                   <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Fee Status</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Fee Amount</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Date</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Registration Date</th>
                   <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Status</th>
                   <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {applications.map((app) => {
-                  const feeStatusColors = getFeeStatusColor(app.feeStatus);
-                  const statusColors = getStatusColor(app.status);
-                  
-                  return (
-                    <tr key={app.id} style={{ 
-                      borderBottom: '1px solid #e5e7eb',
-                      transition: 'background-color 0.2s',
-                    }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f9fafb'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                    >
-                      <td style={{ padding: '12px 16px' }}>{app.name}</td>
-                      <td style={{ padding: '12px 16px' }}>{app.registrationId}</td>
-                      <td style={{ padding: '12px 16px' }}>{app.course}</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          backgroundColor: feeStatusColors.bg,
-                          color: feeStatusColors.text,
-                          padding: '2px 8px',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                        }}>
-                          {app.feeStatus}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>{app.feeAmount}</td>
-                      <td style={{ padding: '12px 16px' }}>{app.applicationDate}</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          backgroundColor: statusColors.bg,
-                          color: statusColors.text,
-                          padding: '2px 8px',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                        }}>
-                          {app.status === 'In Progress' ? 'Pending' : app.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        {app.status === 'In Progress' ? (
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                              onClick={() => handleApprove(app.id)}
-                              style={{
-                                backgroundColor: '#166534',
-                                color: 'white',
-                                padding: '4px 8px',
-                                borderRadius: '4px',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                transition: 'background-color 0.2s',
-                              }}
-                              onMouseEnter={(e) => e.target.style.backgroundColor = '#14532d'}
-                              onMouseLeave={(e) => e.target.style.backgroundColor = '#166534'}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleReject(app.id)}
-                              style={{
-                                backgroundColor: '#991b1b',
-                                color: 'white',
-                                padding: '4px 8px',
-                                borderRadius: '4px',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                transition: 'background-color 0.2s',
-                              }}
-                              onMouseEnter={(e) => e.target.style.backgroundColor = '#7f1d1d'}
-                              onMouseLeave={(e) => e.target.style.backgroundColor = '#991b1b'}
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => navigate(`/faculty/application-details/${app.id}`)}
-                            style={{
-                              backgroundColor: '#49196c',
-                              color: 'white',
-                              padding: '4px 8px',
+                {applications.length > 0 ? (
+                  applications.map((app) => {
+                    const feeStatusColors = getFeeStatusColor(app.feeStatus);
+                    const statusColors = getStatusColor(app.status);
+                    const isExpanded = expandedApplication === app.id;
+                    
+                    return (
+                      <React.Fragment key={app.id}>
+                        <tr style={{ 
+                          borderBottom: '1px solid #e5e7eb',
+                          transition: 'background-color 0.2s',
+                          backgroundColor: isExpanded ? '#f9fafb' : 'transparent'
+                        }}
+                        onMouseEnter={(e) => !isExpanded && (e.target.parentElement.style.backgroundColor = '#f9fafb')}
+                        onMouseLeave={(e) => !isExpanded && (e.target.parentElement.style.backgroundColor = 'transparent')}
+                        >
+                          <td style={{ padding: '12px 16px' }}>{app.name}</td>
+                          <td style={{ padding: '12px 16px' }}>{app.registrationId}</td>
+                          <td style={{ padding: '12px 16px' }}>{app.course}</td>
+                          <td style={{ padding: '12px 16px' }}>{app.batch}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{
+                              backgroundColor: feeStatusColors.bg,
+                              color: feeStatusColors.text,
+                              padding: '2px 8px',
                               borderRadius: '4px',
-                              border: 'none',
-                              cursor: 'pointer',
                               fontSize: '12px',
-                              transition: 'background-color 0.2s',
-                            }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = '#3b1456'}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = '#49196c'}
-                          >
-                            View Details
-                          </button>
+                            }}>
+                              {app.feeStatus}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>{app.applicationDate}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{
+                              backgroundColor: statusColors.bg,
+                              color: statusColors.text,
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                            }}>
+                              {app.status === 'In Progress' ? 'Pending' : app.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                onClick={() => toggleExpandedView(app.id)}
+                                style={{
+                                  backgroundColor: '#49196c',
+                                  color: 'white',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: '12px',
+                                  transition: 'background-color 0.2s',
+                                }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = '#3b1456'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = '#49196c'}
+                              >
+                                {isExpanded ? 'Hide Courses' : 'View Courses'}
+                              </button>
+                              
+                              {app.status === 'In Progress' && (
+                                <>
+                                  <button
+                                    onClick={() => handleApprove(app.id, app.feeStatus)}
+                                    disabled={app.feeStatus !== 'Approved'}
+                                    style={{
+                                      backgroundColor: app.feeStatus !== 'Approved' ? '#d1d5db' : '#166534',
+                                      color: 'white',
+                                      padding: '4px 8px',
+                                      borderRadius: '4px',
+                                      border: 'none',
+                                      cursor: app.feeStatus !== 'Approved' ? 'not-allowed' : 'pointer',
+                                      fontSize: '12px',
+                                      transition: 'background-color 0.2s',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (app.feeStatus === 'Approved') {
+                                        e.target.style.backgroundColor = '#14532d';
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (app.feeStatus === 'Approved') {
+                                        e.target.style.backgroundColor = '#166534';
+                                      }
+                                    }}
+                                    title={app.feeStatus !== 'Approved' ? 'Cannot approve when fee is pending' : 'Approve application'}
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => handleReject(app.id)}
+                                    style={{
+                                      backgroundColor: '#991b1b',
+                                      color: 'white',
+                                      padding: '4px 8px',
+                                      borderRadius: '4px',
+                                      border: 'none',
+                                      cursor: 'pointer',
+                                      fontSize: '12px',
+                                      transition: 'background-color 0.2s',
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#7f1d1d'}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = '#991b1b'}
+                                  >
+                                    Reject
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan="8" style={{ backgroundColor: '#f9fafb', padding: '0' }}>
+                              <div style={{ padding: '16px', borderTop: '1px dashed #e5e7eb' }}>
+                                <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#49196c' }}>
+                                  Selected Courses
+                                </h4>
+                                {app.selectedCourses && app.selectedCourses.length > 0 ? (
+                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                                    <thead>
+                                      <tr>
+                                        <th style={{ padding: '8px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f3f4f6' }}>Course Code</th>
+                                        <th style={{ padding: '8px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f3f4f6' }}>Course Name</th>
+                                        <th style={{ padding: '8px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f3f4f6' }}>Credits</th>
+                                        <th style={{ padding: '8px 16px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f3f4f6' }}>Type</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {app.selectedCourses.map((course, idx) => (
+                                        <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                          <td style={{ padding: '8px 16px' }}>{course.course_code}</td>
+                                          <td style={{ padding: '8px 16px' }}>{course.course_name}</td>
+                                          <td style={{ padding: '8px 16px' }}>{course.credits}</td>
+                                          <td style={{ padding: '8px 16px' }}>
+                                            <span style={{
+                                              backgroundColor: course.is_elective ? '#dbeafe' : '#f3e8ff',
+                                              color: course.is_elective ? '#1e40af' : '#6b21a8',
+                                              padding: '2px 8px',
+                                              borderRadius: '4px',
+                                              fontSize: '12px',
+                                            }}>
+                                              {course.is_elective ? 'Elective' : 'Core'}
+                                            </span>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                ) : (
+                                  <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No courses selected</p>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                      </React.Fragment>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="8" style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>
+                      <BookOpen size={24} style={{ margin: '0 auto 8px auto', opacity: 0.5 }} />
+                      <p>No applications found</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer style={{
+        backgroundColor: 'white',
+        padding: '16px 0',
+        textAlign: 'center',
+        borderTop: '1px solid #e5e7eb',
+        fontSize: '14px',
+        color: '#6b7280',
+        marginTop: '24px',
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          &copy; {new Date().getFullYear()} University Registration System. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 };
