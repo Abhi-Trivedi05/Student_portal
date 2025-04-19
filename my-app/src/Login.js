@@ -111,7 +111,7 @@ const Login = () => {
           <p className="welcome-subtitle">Access your academic information and resources in one place</p>
         </div>
 
-        <div className="login-section">
+        <div className="login-section ">
           <div className="login-header">
             <h2 className="login-title">Sign In</h2>
             <p className="login-subtitle">Please login to your account</p>

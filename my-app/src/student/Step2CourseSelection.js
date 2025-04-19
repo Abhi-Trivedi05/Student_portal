@@ -153,21 +153,18 @@ const Step2CourseSelection = () => {
       <aside className="w-1/5 bg-[#49196c] text-white p-6 flex flex-col justify-between min-h-screen">
         <div>
           <div className="flex flex-col items-start">
-            <img src="/logo.png" alt="IIITV-ICD Logo" className="h-12 w-12" />
+            <img src="/logo.jpg" alt="IIITV-ICD Logo" className="h-12 w-12" />
             <span className="text-sm font-bold mt-2">
               Indian Institute of Information Technology Vadodara <br /> International Campus Diu
             </span>
           </div>
           <nav className="mt-10">
-            <ul className="space-y-5">
-              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/dashboard")}>
-                Home
-              </li>
-              <li className="cursor-pointer hover:text-gray-300 font-bold">Registration</li>
-              <li className="cursor-pointer hover:text-gray-300">Activities</li>
-              <li className="cursor-pointer hover:text-gray-300">My Courses</li>
-              <li className="cursor-pointer hover:text-gray-300">Academic Calendar</li>
-              <li className="cursor-pointer hover:text-gray-300">Announcements</li>
+          <ul className="space-y-5">
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/dashboard")}> Home</li>
+              <li className="cursor-pointer hover:text-gray-300 font-bold" onClick={() => navigate("/student/step-1-registration")}>Registration</li>
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/mycourses")}>My Courses</li>
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/academic-calendar")}>Academic Calendar</li>
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/announcements")}>Announcements</li>
             </ul>
           </nav>
         </div>

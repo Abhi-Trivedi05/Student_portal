@@ -311,7 +311,7 @@ const AcademicCalendarPage = () => {
       <div className="w-1/4 bg-[#49196c] text-white flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-[#5d2a87]">
           <div className="flex items-center">
-            <img src="/api/placeholder/32/32" alt="Logo" className="h-8 w-8 mr-2" />
+            <img src="/logo.jpg" alt="Logo" className="h-8 w-8 mr-2" />
           </div>
           <div className="text-right text-sm text-white font-bold">
             Indian Institute of Information Technology Vadodara <br />

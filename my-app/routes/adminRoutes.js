@@ -57,10 +57,10 @@ router.post('/add-student', verifyAdmin, async (req, res) => {
     
     // Validate required fields
     if (!student_id || !name || !programme || !department || !current_semester || !batch || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide all required fields including password."
-      });
+        return res.status(400).json({ 
+            success: false, 
+            message: "Please provide all required fields including password." 
+        });
     }
     
     try {
@@ -95,30 +95,30 @@ router.post('/add-student', verifyAdmin, async (req, res) => {
       }
       
       // Insert student data
-      const query = 'INSERT INTO students (student_id, name, programme, department, cpi, current_semester, batch, faculty_advisor_id, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      await db.query(query, [student_id, name, programme, department, cpi, current_semester, batch, faculty_advisor_id, password]);
+        const query = 'INSERT INTO students (student_id, name, programme, department, cpi, current_semester, batch, faculty_advisor_id, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        await db.query(query, [student_id, name, programme, department, cpi, current_semester, batch, faculty_advisor_id, password]);
       
       // Commit the transaction
       await db.query('COMMIT');
-      
-      res.json({ success: true, message: "Student added successfully!" });
+        
+        res.json({ success: true, message: "Student added successfully!" });
     } catch (error) {
       // Rollback in case of error
       await db.query('ROLLBACK');
       
-      console.error("Error adding student:", error);
-      
-      // Handle duplicate student_id error
-      if (error.code === 'ER_DUP_ENTRY') {
-        return res.status(400).json({
-          success: false,
-          message: "Student ID already exists."
-        });
-      }
-      
-      res.status(500).json({ success: false, message: "Error adding student." });
+        console.error("Error adding student:", error);
+        
+        // Handle duplicate student_id error
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Student ID already exists." 
+            });
+        }
+        
+        res.status(500).json({ success: false, message: "Error adding student." });
     }
-  });
+});
 // Add Course Route (Admin only)
 router.post('/add-course', verifyAdmin, async (req, res) => {
     const { 
@@ -177,20 +177,20 @@ router.post('/add-course', verifyAdmin, async (req, res) => {
         }
         
         // 4. Insert into semester_course_offerings table
-        const offeringQuery = `
-            INSERT INTO semester_course_offerings 
-            (course_id, semester, academic_year_id, max_seats, available_seats, faculty_id) 
-            VALUES (?, ?, ?, ?, ?, ?)
-        `;
-        
-        await db.query(offeringQuery, [
-            courseId,
-            Number(semester),
+            const offeringQuery = `
+                INSERT INTO semester_course_offerings 
+                (course_id, semester, academic_year_id, max_seats, available_seats, faculty_id) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            `;
+            
+            await db.query(offeringQuery, [
+                courseId,
+                Number(semester),
             Number(academic_year_id),
             Number(max_seats),
             Number(max_seats), // Initially available seats equals max seats
-            Number(faculty_id)
-        ]);
+                Number(faculty_id)
+            ]);
         
         // Commit transaction
         await db.query('COMMIT');
@@ -279,33 +279,33 @@ router.get('/get-fee-transactions/:student_id', async (req, res) => {
     }
 });
 
-    router.get('/faculty/:faculty_id', verifyAdmin, async (req, res) => {
-        const { faculty_id } = req.params;
+router.get('/faculty/:faculty_id', verifyAdmin, async (req, res) => {
+    const { faculty_id } = req.params;
+    
+    try {
+        const [results] = await db.query('SELECT * FROM faculty WHERE id = ?', [faculty_id]);
         
-        try {
-            const [results] = await db.query('SELECT * FROM faculty WHERE id = ?', [faculty_id]);
-            
-            if (!results || results.length === 0) {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'Faculty not found.' 
-                });
-            }
-            
-            // Don't send password in the response for security
-            const faculty = results[0];
-            // Uncomment the next line if you want to hide the password in the response
-            // delete faculty.password;
-            
-            res.status(200).json(faculty);
-        } catch (error) {
-            console.error("Error fetching faculty:", error);
-            res.status(500).json({ 
+        if (!results || results.length === 0) {
+            return res.status(404).json({ 
                 success: false, 
-                message: "Error fetching faculty: " + error.message 
+                message: 'Faculty not found.' 
             });
         }
-    });
+        
+        // Don't send password in the response for security
+        const faculty = results[0];
+        // Uncomment the next line if you want to hide the password in the response
+        // delete faculty.password;
+        
+        res.status(200).json(faculty);
+    } catch (error) {
+        console.error("Error fetching faculty:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Error fetching faculty: " + error.message 
+        });
+    }
+});
 
 // Edit Faculty Route (Admin only)
 router.put('/edit-faculty/:faculty_id', verifyAdmin, async (req, res) => {
@@ -554,8 +554,8 @@ router.put('/edit-student/:student_id', verifyAdmin, async (req, res) => {
       
       // Handle duplicate student_id error
       if (error.code === 'ER_DUP_ENTRY') {
-        return res.status(400).json({
-          success: false,
+        return res.status(400).json({ 
+            success: false, 
           message: "Student ID already exists."
         });
       }
@@ -659,7 +659,7 @@ router.put('/edit-course/:course_id', verifyAdmin, async (req, res) => {
             
             if (existingFacultyCourse.length > 0) {
                 // Update existing faculty_courses entry
-                await db.query(
+            await db.query(
                     'UPDATE faculty_courses SET faculty_id = ? WHERE course_id = ? AND semester = ? AND batch = ?',
                     [Number(faculty_id), courseIdInt, Number(semester), batch]
                 );
@@ -750,7 +750,7 @@ router.put('/edit-course/:course_id', verifyAdmin, async (req, res) => {
         
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ 
-                success: false, 
+            success: false, 
                 message: "Course with this code already exists or this offering already exists for the semester." 
             });
         } else if (error.code === 'ER_NO_REFERENCED_ROW') {
@@ -937,8 +937,8 @@ router.delete('/remove-course/:course_id', verifyAdmin, async (req, res) => {
             const tableMatch = error.sqlMessage.match(/`([^`]+)`\.`([^`]+)`/);
             const tableName = tableMatch ? tableMatch[2] : "unknown table";
             
-            return res.status(400).json({ 
-                success: false, 
+        return res.status(400).json({ 
+            success: false, 
                 message: `Cannot delete course because it is still referenced in the ${tableName} table. Please remove those references first.`,
                 details: error.sqlMessage
             });
@@ -961,24 +961,24 @@ router.delete('/remove-course/:course_id', verifyAdmin, async (req, res) => {
             const [results] = await db.query('SELECT * FROM faculty');
             
             if (!results || results.length === 0) {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'No faculty found.' 
-                });
-            }
-            
-            res.status(200).json({ 
-                success: true, 
-                faculty: results 
-            });
-        } catch (error) {
-            console.error("Error fetching faculty:", error);
-            res.status(500).json({ 
+            return res.status(404).json({ 
                 success: false, 
-                message: "Error fetching faculty: " + error.message 
+                    message: 'No faculty found.' 
             });
         }
-    });
+        
+            res.status(200).json({ 
+            success: true, 
+                faculty: results 
+        });
+    } catch (error) {
+            console.error("Error fetching faculty:", error);
+        res.status(500).json({ 
+            success: false, 
+                message: "Error fetching faculty: " + error.message 
+        });
+    }
+});
 router.get('/get-course', async (req, res) => {
     const query = 'SELECT * FROM courses'; // SQL query to fetch course data
 
@@ -1028,17 +1028,17 @@ router.get('/academic-years', verifyAdmin, async (req, res) => {
            
       // Return the fetched academic years         
       res.json({             
-        success: true,             
+            success: true, 
         data: academicYears         
-      });     
-    } catch (error) {         
+        });
+    } catch (error) {
       console.error("Error fetching academic years:", error);         
-      res.status(500).json({              
-        success: false,              
+        res.status(500).json({ 
+            success: false, 
         message: "Error fetching academic years: " + (error.sqlMessage || error.message)         
-      });     
-    } 
-  });
+        });
+    }
+});
 
 
 

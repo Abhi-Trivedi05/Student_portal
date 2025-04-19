@@ -29,6 +29,19 @@ const AddStudent = () => {
     setStudentData({ ...studentData, [e.target.name]: e.target.value });
   };
 
+  const handleLogout = () => {
+    // Clear localStorage/sessionStorage data
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("studentId");
+    localStorage.removeItem("studentProfile");
+    localStorage.removeItem("academic_year_id");
+    sessionStorage.removeItem("academic_year_id");
+    
+    // Navigate to login page
+    navigate("/");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -185,7 +198,7 @@ const AddStudent = () => {
     <div className="text-gray-300 cursor-pointer">👤 Admin User</div>
     <div className="absolute left-4 bottom-12 bg-white text-black shadow rounded w-40 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-10">
       <button
-        onClick={() => navigate("/")}
+        onClick={handleLogout}
         className="w-full text-left px-4 py-2 hover:bg-gray-100"
       >
         Logout

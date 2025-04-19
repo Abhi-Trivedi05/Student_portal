@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaEdit, FaUser } from "react-icons/fa";
 
 const MyCourses = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showLogout, setShowLogout] = useState(false);
 
   // Get student ID from localStorage (assuming it's stored during login)
   const studentId = localStorage.getItem("studentId") || "";
+  const studentName = localStorage.getItem("studentName") || "Student";
+
+  
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -35,36 +40,56 @@ const MyCourses = () => {
     }
   }, [studentId]);
 
+  const handleLogout = () => {
+    // Clear localStorage/sessionStorage data
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("studentId");
+    localStorage.removeItem("studentProfile");
+    localStorage.removeItem("academic_year_id");
+    sessionStorage.removeItem("academic_year_id");
+    
+    // Navigate to login page
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
       <aside className="w-1/5 bg-[#49196c] text-white p-6 flex flex-col justify-between min-h-screen">
         <div>
-          <div className="flex flex-col items-start">
-            <img src="/logo.png" alt="IIITV-ICD Logo" className="h-12 w-12" />
-            <span className="text-sm font-bold mt-2">
-              Indian Institute of Information Technology Vadodara <br /> International Campus Diu
+          {/* Updated header with logo left and text right-aligned */}
+          <div className="flex items-center justify-between">
+            <img src="/logo.jpg" alt="IIITV-ICD Logo" className="h-20 w-20" />
+            <span className="text-sm font-bold text-right">
+              Indian Institute of Information Technology Vadodara International Campus Diu
             </span>
           </div>
+          
           <nav className="mt-10">
-            <ul className="space-y-5">
-              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/dashboard")}>
-                Home
-              </li>
-              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/registration")}>
-                Registration
-              </li>
-              <li className="cursor-pointer hover:text-gray-300">Activities</li>
-              <li className="cursor-pointer hover:text-gray-300 font-bold">My Courses</li>
-              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/academic-calendar")}>
-                Academic Calendar
-              </li>
-              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/announcements")}>
-                Announcements
-              </li>
+          <ul className="space-y-5">
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/dashboard")}> Home</li>
+              <li className="cursor-pointer hover:text-gray-300 font-bold" onClick={() => navigate("/student/step-1-registration")}>Registration</li>
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/mycourses")}>My Courses</li>
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/academic-calendar")}>Academic Calendar</li>
+              <li className="cursor-pointer hover:text-gray-300" onClick={() => navigate("/student/announcements")}>Announcements</li>
             </ul>
           </nav>
         </div>
+        
+        {/* Profile icon at bottom with logout functionality */}
+        <div className="mt-auto relative">
+  <div 
+    className="flex items-center cursor-pointer p-2 hover:bg-[#5d2a87] rounded-lg transition"
+    onClick={handleLogout}
+  >
+    <div className="bg-gray-200 h-10 w-10 rounded-full flex items-center justify-center mr-3">
+      <FaUser className="text-[#49196c]" />
+    </div>
+    <span className="text-sm font-medium">{"Logout"}</span>
+  </div>
+  
+</div>
       </aside>
 
       {/* Main Content */}

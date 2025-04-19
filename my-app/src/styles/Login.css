@@ -36,8 +36,9 @@
 .login-content {
   display: flex;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   padding: 20px;
+  position: relative;
 }
 
 .welcome-section {
@@ -48,6 +49,7 @@
   padding: 40px;
   color: white;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+  max-width: 50%;
 }
 
 .welcome-title {
@@ -64,14 +66,16 @@
 
 /* Login form section */
 .login-section {
-  flex: 1;
-  max-width: 500px;
-  margin-left: auto;
+  position: absolute;
+  top: 50%;
+  right: 5%;
+  transform: translateY(-50%);
+  width: 400px;
   padding: 40px;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: rgba(255, 255, 255, 0.5);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  align-self: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
 }
 
 .login-header {
@@ -150,6 +154,19 @@
 }
 
 /* Responsive design */
+@media (max-width: 992px) {
+  .login-section {
+    right: 50%;
+    transform: translate(50%, -50%);
+  }
+  
+  .welcome-section {
+    max-width: 80%;
+    text-align: center;
+    margin: 0 auto;
+  }
+}
+
 @media (max-width: 768px) {
   .login-content {
     flex-direction: column;
@@ -158,6 +175,7 @@
   .welcome-section {
     text-align: center;
     padding: 20px;
+    margin-top: 40px;
   }
   
   .welcome-title {
@@ -165,7 +183,12 @@
   }
   
   .login-section {
-    margin: 0 auto;
-    width: 100%;
+    position: relative;
+    top: 0;
+    right: 0;
+    transform: none;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 400px;
   }
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaEdit, FaUser } from "react-icons/fa";
 import axios from "axios";
 import { User, BookOpen, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
@@ -18,6 +19,18 @@ const FacultyAdvisorDashboard = () => {
   const [expandedApplication, setExpandedApplication] = useState(null);
   const [notification, setNotification] = useState(null);
   
+  const handleLogout = () => {
+    // Clear localStorage/sessionStorage data
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("studentId");
+    localStorage.removeItem("studentProfile");
+    localStorage.removeItem("academic_year_id");
+    sessionStorage.removeItem("academic_year_id");
+    
+    // Navigate to login page
+    navigate("/");
+  };
   // Assume faculty ID is stored in localStorage after login
   const facultyId = localStorage.getItem('facultyId') || 1; // Default to 1 for testing
 
@@ -228,7 +241,7 @@ const FacultyAdvisorDashboard = () => {
         </div>
 
         {/* Profile */}
-        <div style={{ position: 'relative' }}>
+        {/* <div style={{ position: 'relative' }}>
           <button
             onClick={() => setShowLogout(!showLogout)}
             style={{
@@ -287,7 +300,28 @@ const FacultyAdvisorDashboard = () => {
               </button>
             </div>
           )}
-        </div>
+        </div> */}
+        <div className="relative">
+                    <div 
+                      className="flex items-center cursor-pointer space-x-3"
+                      onClick={() => setShowLogout(!showLogout)}
+                    >
+                      <div className="bg-gray-200 h-8 w-8 rounded-full flex items-center justify-center">
+                        <FaUser className="text-[#49196c]" />
+                      </div>
+                    </div>
+                    
+                    {showLogout && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg p-2 border border-gray-200">
+                        <button 
+                          className="w-full text-left py-2 px-3 text-gray-700 hover:bg-gray-100 rounded transition"
+                          onClick={handleLogout}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
       </nav>
 
       {/* Notification */}
