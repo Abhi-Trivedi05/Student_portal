@@ -438,7 +438,7 @@ const AdminDashboard = () => {
       title: "Announcements",
       description: "Create and publish important announcements for students and faculty.",
       icon: <Bell size={20} />,
-      image: "/image2.jpg",
+      image: "/announcement.jpg",
       id: "announcements",
       actions: [
         { label: "Make Announcement", path: "/admin/announcements" },
@@ -448,7 +448,7 @@ const AdminDashboard = () => {
       title: "Fee Approvals",
       description: "Review and approve student fee details and payment records.",
       icon: <FileText size={20} />,
-      image: "/image3.jpg",
+      image: "/fee.jpg",
       id: "fee-approvals",
       actions: [
         { label: "Approve Fee", path: "/admin/approval/approve-fee-details" },
@@ -458,7 +458,7 @@ const AdminDashboard = () => {
       title: "Academic Calendar",
       description: "Upload and manage the academic calendar for the institution.",
       icon: <FileText size={20} />,
-      image: "/image3.jpg",
+      image: "/calendar.jpg",
       id: "academic-calendar",
        actions: [
         { label: "Upload Calendar", path: "/admin/academic-calendar" },
@@ -601,11 +601,11 @@ const AdminDashboard = () => {
         marginTop: '5px'
       }}>
         <img
-          src="/campus-building.jpg"
+          src="/inst.jpg"
           alt="Banner"
           style={{
             width: '100%',
-            height: '200px', // Reduced from 120px
+            height: '350px', // Reduced from 120px
             objectFit: 'cover'
           }}
           onError={(e) => {
@@ -651,7 +651,7 @@ const AdminDashboard = () => {
                 src={section.image}
                 alt={section.title}
                 style={{
-                  width: '100%', // Use full width of container
+                  // width: '100%', // Use full width of container
                   height: isMobile ? '200px' : '180px', // Increased height
                   borderRadius: '10px', // Slightly increased border radius
                   objectFit: 'cover',
