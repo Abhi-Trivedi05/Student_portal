@@ -414,7 +414,7 @@ const AdminDashboard = () => {
       title: "Faculty Management",
       description: "Manage faculty information and assignments.",
       icon: <User size={20} />,
-      image: "/campus-building.jpg",
+      image: "/faculty.jpg",
       id: "faculty-management",
       actions: [
         { label: "Add Faculty", path: "/admin/add-faculty" },
@@ -426,7 +426,7 @@ const AdminDashboard = () => {
       title: "Course Management",
       description: "Create and manage course offerings and schedules.",
       icon: <BookOpen size={20} />,
-      image: "/beach.jpg",
+      image: "/course.jpg",
       id: "course-management",
       actions: [
         { label: "Add Course", path: "/admin/add-course" },
@@ -666,7 +666,7 @@ const AdminDashboard = () => {
 
             {/* Section Content - BETTER CENTERED */}
             <div style={{ 
-              marginLeft: isMobile ? '0' : (index % 2 === 0 ? '50px' : '0'), // Increased margin
+              marginLeft: isMobile ? '0' : (index % 2 === 0 ? '50px' : '0'), 
               marginRight: isMobile ? '0' : (index % 2 === 0 ? '0' : '80px'), // Increased margin
               flex: '1',
               display: 'flex',
@@ -679,15 +679,15 @@ const AdminDashboard = () => {
               <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                marginBottom: '16px', // Increased margin
-                width: '100%' // Ensure full width of container
+                marginBottom: '16px', 
+                width: '100%' 
               }}>
                 <div style={{
-                  padding: '10px', // Increased padding
-                  borderRadius: '8px', // Increased border radius
+                  padding: '10px', 
+                  borderRadius: '8px', 
                   backgroundColor: '#49196c',
                   color: 'white',
-                  marginRight: '15px', // Increased margin
+                  marginRight: '15px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -695,7 +695,7 @@ const AdminDashboard = () => {
                   {section.icon}
                 </div>
                 <h2 style={{ 
-                  fontSize: '22px', // Increased font size
+                  fontSize: '22px', 
                   fontWeight: 'bold', 
                   color: '#1f2937', 
                   margin: 0
@@ -706,24 +706,24 @@ const AdminDashboard = () => {
               <p style={{ 
                 color: '#4b5563', 
                 marginTop: '8px', 
-                marginBottom: '20px', // Increased margin
-                fontSize: '16px', // Increased font size
-                width: '100%', // Ensure full width
-                lineHeight: '1.6', // Improved line height for readability
+                marginBottom: '20px', 
+                fontSize: '16px', 
+                width: '100%', 
+                lineHeight: '1.6', 
               }}>
                 {section.description}
               </p>
               <div style={{ 
-                width: '100%', // Full width for action buttons
+                width: '100%', 
                 display: 'flex',
-                justifyContent: 'flex-start', // Left align consistently
+                justifyContent: 'flex-start', 
               }}>
                 {section.actions.length === 3 ? (
                   <div style={{ 
                     display: 'flex', 
                     flexDirection: 'row',
                     flexWrap: 'wrap',
-                    gap: '12px' // Increased gap
+                    gap: '12px' 
                   }}>
                     {section.actions.map((action, actionIndex) => (
                       <button
@@ -732,14 +732,14 @@ const AdminDashboard = () => {
                         style={{
                           backgroundColor: '#49196c',
                           color: 'white',
-                          padding: '10px 18px', // Increased padding
+                          padding: '10px 18px', 
                           borderRadius: '6px',
                           fontSize: '14px',
                           fontWeight: '600',
                           border: 'none',
                           cursor: 'pointer',
                           transition: 'background-color 0.2s',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)', // Added subtle shadow
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)', 
                         }}
                       >
                         {action.label}
@@ -749,7 +749,7 @@ const AdminDashboard = () => {
                 ) : (
                   <div style={{ 
                     display: 'flex', 
-                    gap: '12px', // Increased gap
+                    gap: '12px', 
                     flexWrap: 'wrap' 
                   }}>
                     {section.actions.map((action, actionIndex) => (
@@ -759,14 +759,14 @@ const AdminDashboard = () => {
                         style={{
                           backgroundColor: '#49196c',
                           color: 'white',
-                          padding: '10px 18px', // Increased padding
+                          padding: '10px 18px', 
                           borderRadius: '6px',
                           fontSize: '14px',
                           fontWeight: '600',
                           border: 'none',
                           cursor: 'pointer',
                           transition: 'background-color 0.2s',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)', // Added subtle shadow
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)', 
                         }}
                       >
                         {action.label}
