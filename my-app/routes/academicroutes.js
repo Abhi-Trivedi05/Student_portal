@@ -2,7 +2,9 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import db from '../database/db.js';
+import AcademicYear from '../models/AcademicYear.js';
+import AcademicCalendar from '../models/AcademicCalendar.js';
+import Admin from '../models/Admin.js';
 
 const router = express.Router();
 
@@ -70,7 +72,7 @@ const verifyUser = (req, res, next) => {
 // Get academic years for dropdown (accessible to all authenticated users)
 router.get('/academic-years', verifyUser, async (req, res) => {
     try {
-        const [years] = await db.query('SELECT id, year_name FROM academic_years ORDER BY start_date DESC');
+        const years = await AcademicYear.find().select('id year_name').sort({ start_date: -1 });
         
         if (!years || years.length === 0) {
             return res.status(404).json({ 
@@ -81,7 +83,7 @@ router.get('/academic-years', verifyUser, async (req, res) => {
         
         res.status(200).json({ 
             success: true, 
-            academicYears: years 
+            academicYears: years.map(y => ({ id: y._id, year_name: y.year_name }))
         });
     } catch (error) {
         console.error("Error fetching academic years:", error);
@@ -96,32 +98,17 @@ router.get('/academic-years', verifyUser, async (req, res) => {
 router.get('/calendars', verifyUser, async (req, res) => {
     try {
         const role = req.header('Role');
-        let query;
+        let query = {};
         
         // Students can only see active calendars
         if (role === 'student') {
-            query = `
-                SELECT ac.id, ac.title, ac.file_name, ac.file_size, ac.upload_date, 
-                       ac.status, ay.year_name as academic_year, a.username as uploaded_by
-                FROM academic_calendars ac
-                JOIN academic_years ay ON ac.academic_year_id = ay.id
-                JOIN admin a ON ac.admin_id = a.id
-                WHERE ac.status = 'active'
-                ORDER BY ac.upload_date DESC
-            `;
-        } else {
-            // Admins can see all calendars
-            query = `
-                SELECT ac.id, ac.title, ac.file_name, ac.file_size, ac.upload_date, 
-                       ac.status, ay.year_name as academic_year, a.username as uploaded_by
-                FROM academic_calendars ac
-                JOIN academic_years ay ON ac.academic_year_id = ay.id
-                JOIN admin a ON ac.admin_id = a.id
-                ORDER BY ac.upload_date DESC
-            `;
+            query = { status: 'active' };
         }
         
-        const [calendars] = await db.query(query);
+        const calendars = await AcademicCalendar.find(query)
+            .populate('academic_year_id', 'year_name')
+            .populate('admin_id', 'username')
+            .sort({ upload_date: -1 });
         
         if (!calendars || calendars.length === 0) {
             return res.status(404).json({ 
@@ -133,9 +120,14 @@ router.get('/calendars', verifyUser, async (req, res) => {
         // Format the dates and file sizes
         const formattedCalendars = calendars.map(calendar => {
             return {
-                ...calendar,
+                id: calendar._id,
+                title: calendar.title,
+                file_name: calendar.file_name,
+                file_size: formatFileSize(calendar.file_size),
                 upload_date: new Date(calendar.upload_date).toLocaleString(),
-                file_size: formatFileSize(calendar.file_size)
+                status: calendar.status,
+                academic_year: calendar.academic_year_id ? calendar.academic_year_id.year_name : 'Unknown',
+                uploaded_by: calendar.admin_id ? calendar.admin_id.username : 'Unknown'
             };
         });
         
@@ -184,22 +176,13 @@ router.post('/upload', verifyAdmin, upload.single('pdfFile'), async (req, res) =
             });
         }
 
-        // Log incoming data for debugging
-        console.log("Upload request data:", {
-            title,
-            academicYearId,
-            adminId,
-            fileName: req.file.originalname,
-            fileSize: req.file.size
-        });
-
         // Read the file for database storage
         const filePath = req.file.path;
         const fileBuffer = fs.readFileSync(filePath);
         
         // Check if the academic year exists
-        const [yearCheck] = await db.query('SELECT id FROM academic_years WHERE id = ?', [academicYearId]);
-        if (!yearCheck || yearCheck.length === 0) {
+        const yearCheck = await AcademicYear.findById(academicYearId);
+        if (!yearCheck) {
             fs.unlinkSync(filePath);
             return res.status(400).json({
                 success: false,
@@ -208,8 +191,8 @@ router.post('/upload', verifyAdmin, upload.single('pdfFile'), async (req, res) =
         }
         
         // Check if the admin exists
-        const [adminCheck] = await db.query('SELECT id FROM admin WHERE id = ?', [adminId]);
-        if (!adminCheck || adminCheck.length === 0) {
+        const adminCheck = await Admin.findById(adminId);
+        if (!adminCheck) {
             fs.unlinkSync(filePath);
             return res.status(400).json({
                 success: false,
@@ -217,47 +200,26 @@ router.post('/upload', verifyAdmin, upload.single('pdfFile'), async (req, res) =
             });
         }
 
-        // Insert into academic_calendars table directly using prepared statement
-        // This approach avoids potential issues with the LONGBLOB parameter
-        const connection = await db.getConnection();
-        try {
-            await connection.beginTransaction();
-            
-            const query = `
-                INSERT INTO academic_calendars 
-                (title, academic_year_id, pdf_file, file_name, file_size, admin_id, status) 
-                VALUES (?, ?, ?, ?, ?, ?, 'active')
-            `;
-            
-            const [result] = await connection.query(query, [
-                title,
-                academicYearId,
-                fileBuffer,
-                req.file.originalname,
-                req.file.size,
-                adminId
-            ]);
-            
-            await connection.commit();
-            
-            // Delete the file from disk as we've stored it in the database
-            fs.unlinkSync(filePath);
-            
-            console.log("Calendar inserted with ID:", result.insertId);
-            
-            res.json({ 
-                success: true, 
-                message: "Academic calendar uploaded successfully!",
-                fileName: req.file.originalname,
-                fileSize: formatFileSize(req.file.size),
-                calendarId: result.insertId
-            });
-        } catch (err) {
-            await connection.rollback();
-            throw err;
-        } finally {
-            connection.release();
-        }
+        const newCalendar = await AcademicCalendar.create({
+            title,
+            academic_year_id: academicYearId,
+            pdf_file: fileBuffer,
+            file_name: req.file.originalname,
+            file_size: req.file.size,
+            admin_id: adminId,
+            status: 'active'
+        });
+        
+        // Delete the file from disk as we've stored it in the database
+        fs.unlinkSync(filePath);
+        
+        res.json({ 
+            success: true, 
+            message: "Academic calendar uploaded successfully!",
+            fileName: req.file.originalname,
+            fileSize: formatFileSize(req.file.size),
+            calendarId: newCalendar._id
+        });
     } catch (error) {
         console.error("Error uploading academic calendar:", error);
         
@@ -279,27 +241,24 @@ router.get('/download/:id', verifyUser, async (req, res) => {
         const { id } = req.params;
         const role = req.header('Role');
         
-        let query;
+        let query = { _id: id };
         
         // Students can only download active calendars
         if (role === 'student') {
-            query = 'SELECT pdf_file, file_name FROM academic_calendars WHERE id = ? AND status = "active"';
-        } else {
-            // Admins can download any calendar
-            query = 'SELECT pdf_file, file_name FROM academic_calendars WHERE id = ?';
+            query.status = 'active';
         }
         
-        const [calendar] = await db.query(query, [id]);
+        const calendar = await AcademicCalendar.findOne(query);
         
-        if (!calendar || calendar.length === 0) {
+        if (!calendar) {
             return res.status(404).json({ 
                 success: false, 
                 message: role === 'student' ? 'Calendar not found or not active.' : 'Calendar not found.' 
             });
         }
         
-        const fileData = calendar[0].pdf_file;
-        const fileName = calendar[0].file_name;
+        const fileData = calendar.pdf_file;
+        const fileName = calendar.file_name;
         
         // Set response headers
         res.setHeader('Content-Type', 'application/pdf');
@@ -322,33 +281,18 @@ router.get('/calendar/:id', verifyUser, async (req, res) => {
         const { id } = req.params;
         const role = req.header('Role');
         
-        let query;
+        let query = { _id: id };
         
         // Students can only view active calendars
         if (role === 'student') {
-            query = `
-                SELECT ac.id, ac.title, ac.file_name, ac.file_size, ac.upload_date, 
-                       ac.status, ay.year_name as academic_year, a.username as uploaded_by
-                FROM academic_calendars ac
-                JOIN academic_years ay ON ac.academic_year_id = ay.id
-                JOIN admin a ON ac.admin_id = a.id
-                WHERE ac.id = ? AND ac.status = 'active'
-            `;
-        } else {
-            // Admins can view any calendar
-            query = `
-                SELECT ac.id, ac.title, ac.file_name, ac.file_size, ac.upload_date, 
-                       ac.status, ay.year_name as academic_year, a.username as uploaded_by
-                FROM academic_calendars ac
-                JOIN academic_years ay ON ac.academic_year_id = ay.id
-                JOIN admin a ON ac.admin_id = a.id
-                WHERE ac.id = ?
-            `;
+            query.status = 'active';
         }
         
-        const [calendar] = await db.query(query, [id]);
+        const calendar = await AcademicCalendar.findOne(query)
+            .populate('academic_year_id', 'year_name')
+            .populate('admin_id', 'username');
         
-        if (!calendar || calendar.length === 0) {
+        if (!calendar) {
             return res.status(404).json({ 
                 success: false, 
                 message: role === 'student' ? 'Calendar not found or not active.' : 'Calendar not found.' 
@@ -357,9 +301,14 @@ router.get('/calendar/:id', verifyUser, async (req, res) => {
         
         // Format the date and file size
         const formattedCalendar = {
-            ...calendar[0],
-            upload_date: new Date(calendar[0].upload_date).toLocaleString(),
-            file_size: formatFileSize(calendar[0].file_size)
+            id: calendar._id,
+            title: calendar.title,
+            file_name: calendar.file_name,
+            file_size: formatFileSize(calendar.file_size),
+            upload_date: new Date(calendar.upload_date).toLocaleString(),
+            status: calendar.status,
+            academic_year: calendar.academic_year_id ? calendar.academic_year_id.year_name : 'Unknown',
+            uploaded_by: calendar.admin_id ? calendar.admin_id.username : 'Unknown'
         };
         
         res.status(200).json({ 
@@ -376,7 +325,7 @@ router.get('/calendar/:id', verifyUser, async (req, res) => {
 });
 
 // Change calendar status (admin only)
-router.put('/status/:id', verifyAdmin, async (req, res) => {
+router.get('/status/:id', verifyAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -388,12 +337,9 @@ router.put('/status/:id', verifyAdmin, async (req, res) => {
             });
         }
         
-        const [result] = await db.query(
-            'UPDATE academic_calendars SET status = ? WHERE id = ?', 
-            [status, id]
-        );
+        const result = await AcademicCalendar.findByIdAndUpdate(id, { status: status });
         
-        if (result.affectedRows === 0) {
+        if (!result) {
             return res.status(404).json({ 
                 success: false, 
                 message: "Calendar not found." 
@@ -418,9 +364,9 @@ router.delete('/delete/:id', verifyAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         
-        const [result] = await db.query('DELETE FROM academic_calendars WHERE id = ?', [id]);
+        const result = await AcademicCalendar.findByIdAndDelete(id);
         
-        if (result.affectedRows === 0) {
+        if (!result) {
             return res.status(404).json({ 
                 success: false, 
                 message: "Calendar not found." 

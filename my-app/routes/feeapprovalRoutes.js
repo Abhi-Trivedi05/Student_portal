@@ -1,6 +1,8 @@
-// src/routes/approvalRoutes.js
 import express from 'express';
-import db from '../database/db.js';
+import FeeTransaction from '../models/FeeTransaction.js';
+import Student from '../models/Student.js';
+import AcademicYear from '../models/AcademicYear.js';
+import FeeApproval from '../models/FeeApproval.js';
 
 const router = express.Router();
 
@@ -9,48 +11,52 @@ router.get('/fee-transactions', async (req, res) => {
   try {
     const { status, academicYearId, semester } = req.query;
     
-    // Build the SQL query with filters
-    let sql = `
-      SELECT 
-        ft.id,
-        ft.student_id,
-        s.name AS student_name,
-        ft.transaction_date,
-        ft.bank_name,
-        ft.amount,
-        ft.reference_number,
-        ft.status,
-        ft.semester,
-        ay.year_name AS academic_year,
-        ay.id AS academic_year_id
-      FROM fee_transactions ft
-      JOIN students s ON ft.student_id = s.student_id
-      JOIN academic_years ay ON ft.academic_year_id = ay.id
-      WHERE 1=1
-    `;
+    // Build the Mongoose query
+    let query = {};
     
-    const queryParams = [];
-    
-    // Add filters if provided
     if (status && status !== 'All') {
-      sql += ' AND ft.status = ?';
-      queryParams.push(status);
+      query.status = status;
     }
     
     if (academicYearId) {
-      sql += ' AND ft.academic_year_id = ?';
-      queryParams.push(academicYearId);
+      query.academic_year_id = academicYearId;
     }
     
     if (semester) {
-      sql += ' AND ft.semester = ?';
-      queryParams.push(semester);
+      query.semester = semester;
     }
     
-    sql += ' ORDER BY ft.transaction_date DESC';
-    
-    const [transactions] = await db.query(sql, queryParams);
-    res.json(transactions);
+    const transactions = await FeeTransaction.find(query)
+      .populate('student_id', 'name') // Assuming student_id maps to student_id field in Student model or _id
+      .populate('academic_year_id', 'year_name')
+      .sort({ transaction_date: -1 });
+
+    const formattedTransactions = [];
+
+    for (const ft of transactions) {
+        // Find student by student_id string if needed
+        let studentName = 'Unknown';
+        if (ft.student_id) {
+            const student = await Student.findOne({ student_id: ft.student_id });
+            if (student) studentName = student.name;
+        }
+
+        formattedTransactions.push({
+            id: ft._id,
+            student_id: ft.student_id,
+            student_name: studentName,
+            transaction_date: ft.transaction_date,
+            bank_name: ft.bank_name,
+            amount: ft.amount,
+            reference_number: ft.reference_number,
+            status: ft.status,
+            semester: ft.semester,
+            academic_year: ft.academic_year_id ? ft.academic_year_id.year_name : 'Unknown',
+            academic_year_id: ft.academic_year_id ? ft.academic_year_id._id : null
+        });
+    }
+
+    res.json(formattedTransactions);
   } catch (error) {
     console.error('Error fetching fee transactions:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
@@ -62,36 +68,33 @@ router.get('/fee-transactions/:id', async (req, res) => {
   try {
     const transactionId = req.params.id;
     
-    // Query to get transaction details with student info
-    const query = `
-      SELECT 
-        ft.id,
-        ft.student_id,
-        s.name AS student_name,
-        ft.amount,
-        ft.transaction_date,
-        ft.status,
-        ft.reference_number,
-        ft.bank_name,
-        ft.semester,
-        ay.year_name AS academic_year,
-        ay.id AS academic_year_id,
-        s.programme,
-        s.department,
-        s.current_semester
-      FROM fee_transactions ft
-      JOIN students s ON ft.student_id = s.student_id
-      JOIN academic_years ay ON ft.academic_year_id = ay.id
-      WHERE ft.id = ?
-    `;
+    const ft = await FeeTransaction.findById(transactionId)
+        .populate('academic_year_id', 'year_name');
     
-    const [transactions] = await db.query(query, [transactionId]);
-    
-    if (transactions.length === 0) {
+    if (!ft) {
       return res.status(404).json({ message: 'Transaction not found' });
     }
     
-    res.json(transactions[0]);
+    const student = await Student.findOne({ student_id: ft.student_id });
+    
+    const result = {
+        id: ft._id,
+        student_id: ft.student_id,
+        student_name: student ? student.name : 'Unknown',
+        amount: ft.amount,
+        transaction_date: ft.transaction_date,
+        status: ft.status,
+        reference_number: ft.reference_number,
+        bank_name: ft.bank_name,
+        semester: ft.semester,
+        academic_year: ft.academic_year_id ? ft.academic_year_id.year_name : 'Unknown',
+        academic_year_id: ft.academic_year_id ? ft.academic_year_id._id : null,
+        programme: student ? student.programme : 'Unknown',
+        department: student ? student.department : 'Unknown',
+        current_semester: student ? student.current_semester : 'Unknown'
+    };
+    
+    res.json(result);
     
   } catch (error) {
     console.error('Error fetching transaction details:', error);
@@ -102,7 +105,7 @@ router.get('/fee-transactions/:id', async (req, res) => {
 // Get all academic years
 router.get('/academic-years', async (req, res) => {
   try {
-    const [years] = await db.query('SELECT id, year_name, is_current FROM academic_years ORDER BY start_date DESC');
+    const years = await AcademicYear.find().sort({ start_date: -1 });
     res.json(years);
   } catch (error) {
     console.error('Error fetching academic years:', error);
@@ -114,91 +117,59 @@ router.get('/academic-years', async (req, res) => {
 router.put('/fee-transactions/:id/approve', async (req, res) => {
   try {
     const { id } = req.params;
-    const { admin_id } = req.body; // Admin's ID in the request
+    const { admin_id } = req.body; 
     
     if (!admin_id) {
       return res.status(400).json({ message: 'Admin ID is required' });
     }
     
-    // Start a transaction
-    await db.query('START TRANSACTION');
+    const ft = await FeeTransaction.findByIdAndUpdate(id, { status: 'Paid' }, { new: true });
     
-    // Update the transaction status to 'Paid'
-    await db.query('UPDATE fee_transactions SET status = "Paid" WHERE id = ?', [id]);
-    
-    // Insert a record in fee_approvals table
-    await db.query(`
-      INSERT INTO fee_approvals (
-        fee_transaction_id, 
-        admin_id, 
-        approval_date, 
-        status, 
-        remarks
-      ) VALUES (?, ?, NOW(), 'Approved', 'Payment approved')
-    `, [id, admin_id]);
-    
-    // Get the transaction details to update semester_registrations if needed
-    const [transaction] = await db.query(
-      'SELECT student_id, semester, academic_year_id FROM fee_transactions WHERE id = ?', 
-      [id]
-    );
-    
-    // if (transaction.length > 0) {
-    //   // Update the semester_registrations status
-    //   await db.query(`
-    //     UPDATE semester_registrations 
-    //     SET status = 'Completed' 
-    //     WHERE student_id = ? AND semester = ? AND academic_year_id = ?
-    //   `, [transaction[0].student_id, transaction[0].semester, transaction[0].academic_year_id]);
-    // }
-    
-    // Commit the transaction
-    await db.query('COMMIT');
+    if (!ft) {
+        return res.status(404).json({ message: 'Transaction not found' });
+    }
+
+    await FeeApproval.create({
+        fee_transaction_id: id,
+        admin_id: admin_id,
+        approval_date: new Date(),
+        status: 'Approved',
+        remarks: 'Payment approved'
+    });
     
     res.json({ message: 'Fee payment approved successfully' });
   } catch (error) {
-    // Rollback on error
-    await db.query('ROLLBACK');
     console.error('Error approving fee payment:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
 
 // Reject a fee transaction
-// Reject a fee transaction
 router.put('/fee-transactions/:id/reject', async (req, res) => {
   try {
     const { id } = req.params;
-    const { admin_id, reason } = req.body;  // Add reason to destructuring
+    const { admin_id, reason } = req.body; 
     
     if (!admin_id) {
       return res.status(400).json({ message: 'Admin ID is required' });
     }
     
-    // Start transaction
-    await db.query('START TRANSACTION');
-    
-    // Update the fee transaction to add rejection reason and set status
-    await db.query('UPDATE fee_transactions SET status = "Rejected" WHERE id = ?', [id]);
+    const ft = await FeeTransaction.findByIdAndUpdate(id, { status: 'Rejected' }, { new: true });
   
-    // Insert a record in fee_approvals table for rejection
-    await db.query(`
-      INSERT INTO fee_approvals (
-        fee_transaction_id, 
-        admin_id, 
-        approval_date, 
-        status,
-        remarks
-      ) VALUES (?, ?, NOW(), 'Rejected', ?)
-    `, [id, admin_id, reason || 'Payment rejected']);  // Include reason in query
-    
-    // Commit transaction
-    await db.query('COMMIT');
+    if (!ft) {
+        return res.status(404).json({ message: 'Transaction not found' });
+    }
+
+    await FeeApproval.create({
+        fee_transaction_id: id,
+        admin_id: admin_id,
+        approval_date: new Date(),
+        status: 'Rejected',
+        remarks: reason || 'Payment rejected'
+    });
     
     res.json({ message: 'Fee payment rejected successfully' });
   } catch (error) {
-    // Rollback on error
-    await db.query('ROLLBACK');
     console.error('Error rejecting fee payment:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }

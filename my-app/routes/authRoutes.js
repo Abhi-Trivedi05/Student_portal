@@ -1,6 +1,8 @@
 import express from 'express';
-import db from '../database/db.js'; 
 import jwt from 'jsonwebtoken';
+import Admin from '../models/Admin.js';
+import Student from '../models/Student.js';
+import Faculty from '../models/Faculty.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -13,39 +15,32 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ success: false, message: "ID, password, and role are required" });
     }
     
-    let query, userType, userIdColumn, paramValue;
-    
-    if (role === 'admin') {
-        // For admin, use the id field from request as username
-        query = 'SELECT * FROM admin WHERE username = ?';
-        userType = 'admin';
-        userIdColumn = 'id';
-        paramValue = id; // This is the username for admin
-    } else if (role === 'student') {
-        query = 'SELECT * FROM students WHERE student_id = ?';
-        userType = 'student';
-        userIdColumn = 'student_id';
-        paramValue = id;
-    } else if (role === 'faculty') {
-        query = 'SELECT * FROM faculty WHERE id = ?';
-        userType = 'faculty';
-        userIdColumn = 'id';
-        paramValue = id;
-    } else {
-        return res.status(400).json({ success: false, message: "Invalid role" });
-    }
+    let userType, userIdColumn, user;
     
     try {
-        const [rows] = await db.query(query, [paramValue]);
+        if (role === 'admin') {
+            user = await Admin.findOne({ username: id });
+            userType = 'admin';
+            userIdColumn = 'username';
+        } else if (role === 'student') {
+            user = await Student.findOne({ student_id: id });
+            userType = 'student';
+            userIdColumn = 'student_id';
+        } else if (role === 'faculty') {
+            user = await Faculty.findOne({ id: id });
+            userType = 'faculty';
+            userIdColumn = 'id';
+        } else {
+            return res.status(400).json({ success: false, message: "Invalid role" });
+        }
         
-        if (rows.length === 0) {
+        if (!user) {
             return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
         
-        const user = rows[0];
-        
-        // Directly compare plain text passwords
-        if (password !== user.password) {
+        // Use bcrypt to compare password
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
             return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
         

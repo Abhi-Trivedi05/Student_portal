@@ -1,14 +1,14 @@
-import mysql from 'mysql2';
+import mongoose from 'mongoose';
 
-// Create a connection pool
-const db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '1234',
-    database: 'student_registration',
-    port:'3306',  
-});
+const connectDB = async () => {
+    try {
+        const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/student_registration';
+        await mongoose.connect(uri);
+        console.log('MongoDB connection successful');
+    } catch (error) {
+        console.error('MongoDB Connection Error:', error);
+        process.exit(1);
+    }
+};
 
-// Expose the promise-based API
-const promisePool = db.promise();  // Get promise API
-export default promisePool;        // Export it to be used in your routes
+export default connectDB;
