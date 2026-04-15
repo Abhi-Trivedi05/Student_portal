@@ -1,40 +1,12 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+// Faculty.js
 
-const facultySchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  name: {
-    type: String
-  },
-  department: {
-    type: String
-  }
-}, { timestamps: true });
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-// Pre-save hook to hash password
-facultySchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
+const FacultySchema = new Schema({
+    // existing fields ...
+    resetToken: { type: String },
+    resetExpires: { type: Date }
 });
 
-// Method to compare password
-facultySchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
-
-const Faculty = mongoose.model('Faculty', facultySchema);
-export default Faculty;
+module.exports = mongoose.model('Faculty', FacultySchema);
