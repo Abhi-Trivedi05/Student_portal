@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
+import API_BASE_URL from "../apiConfig";
 
 const RemoveStudent = () => {
   const [activeDropdown, setActiveDropdown] = useState(""); // Tracks active dropdown
@@ -56,7 +57,7 @@ const RemoveStudent = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/admin/get-students", {
+        const response = await axios.get(`${API_BASE_URL}/api/admin/get-students`, {
           headers: { Role: "admin" },
         });
         if (response.data.students) setStudentList(response.data.students);
@@ -95,7 +96,7 @@ const RemoveStudent = () => {
     try {
       setLoading(true);
       const response = await axios.delete(
-        `http://localhost:5000/api/admin/remove-student/${selectedStudentId}`,
+        `${API_BASE_URL}/api/admin/remove-student/${selectedStudentId}`,
         { headers: { Role: "admin" } }
       );
       if (response.data.success) {

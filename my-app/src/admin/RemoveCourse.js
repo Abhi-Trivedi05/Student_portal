@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
+import API_BASE_URL from "../apiConfig";
 
 const RemoveCourse = () => {
   const [activeDropdown, setActiveDropdown] = useState("");
@@ -59,7 +59,7 @@ const RemoveCourse = () => {
     const fetchCourses = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get("http://localhost:5000/api/admin/get-courses", {
+        const response = await axios.get(`${API_BASE_URL}/api/admin/get-courses`, {
           headers: { Role: "admin" }
         });
         setCourses(response.data.courses || []);
@@ -108,7 +108,7 @@ const RemoveCourse = () => {
     try {
       setIsLoading(true);
       const response = await axios.delete(
-        `http://localhost:5000/api/admin/remove-course/${courseId}`,
+        `${API_BASE_URL}/api/admin/remove-course/${courseId}`,
         { headers: { Role: "admin" } }
       );
       

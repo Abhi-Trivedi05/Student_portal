@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import axios from "axios";
+import API_BASE_URL from "../apiConfig";
 
 const AddCourse = () => {
   const [activeDropdown, setActiveDropdown] = useState(""); // Tracks active dropdown
@@ -48,7 +49,7 @@ const AddCourse = () => {
         console.log("Token:", token ? "Token exists" : "No token found");
         
         console.log("Making API request to fetch academic years...");
-        const response = await axios.get("http://localhost:5000/api/admin/academic-years", {
+        const response = await axios.get(`${API_BASE_URL}/api/admin/academic-years`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Role: localStorage.getItem("role")
@@ -110,7 +111,7 @@ const AddCourse = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:5000/api/admin/add-course",
+        `${API_BASE_URL}/api/admin/add-course`,
         dataToSend,
         {
           headers: {

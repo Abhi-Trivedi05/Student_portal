@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaUser } from "react-icons/fa";
 import axios from "axios";
-
-const API_BASE_URL = 'http://localhost:5000';
+import API_BASE_URL from "../apiConfig";
 const Step1Registration = () => {
   const navigate = useNavigate();
   const [showLogout, setShowLogout] = useState(false);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../apiConfig";
 
 const Step2CourseSelection = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const Step2CourseSelection = () => {
     const fetchAvailableCourses = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/student/registration/available-courses', {
+        const response = await fetch(`${API_BASE_URL}/api/student/registration/available-courses`, {
           headers: {
             'Role': 'student',
             'StudentId': studentId
@@ -108,7 +109,7 @@ const Step2CourseSelection = () => {
       
       // Insert selected courses into course_selections with status 'Pending'
       const promises = selectedCourseObjects.map(course => 
-        fetch('http://localhost:5000/api/student/select-course', {
+        fetch(`${API_BASE_URL}/api/student/select-course`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

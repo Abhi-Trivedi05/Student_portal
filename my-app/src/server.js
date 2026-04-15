@@ -31,12 +31,16 @@ app.use(helmet({
             "script-src": ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
             "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             "font-src": ["'self'", "https://fonts.gstatic.com"],
-            "connect-src": ["'self'", "http://localhost:5000", "https://*.mongodb.net"]
+            "connect-src": ["'self'", process.env.API_URL || "http://localhost:5000", "https://*.mongodb.net", process.env.FRONTEND_URL || "*"]
         }
     }
 }));
 app.use(compression());
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
 app.use(express.json());
 
 

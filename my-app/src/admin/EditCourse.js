@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import axios from "axios";
+import API_BASE_URL from "../apiConfig";
 
 const EditCourse = () => {
   const [activeDropdown, setActiveDropdown] = useState("");
@@ -36,7 +37,7 @@ const EditCourse = () => {
       setLoading(true);
       try {
         // Fetch academic years
-        const response = await axios.get("http://localhost:5000/api/admin/academic-years", {
+        const response = await axios.get(`${API_BASE_URL}/api/admin/academic-years`, {
           headers: {
             Authorization: `Bearer`,
             Role: localStorage.getItem("role")
@@ -45,16 +46,9 @@ const EditCourse = () => {
         
         console.log("API Response:", response.data);
         setAcademicYears(response.data.data || []);
-        // const academicYearsRes = await axios.get("http://localhost:5000/api/admin/academic-years", {
-        //   headers: {
-        //     Authorization: `Bearer ${localStorage.getItem("token")}`,
-        //     Role: localStorage.getItem("role")
-        //   }
-        // });
-        // setAcademicYears(academicYearsRes.data.academicYears || []);
         
         // Fetch all courses using the provided route
-        const coursesRes = await axios.get("http://localhost:5000/api/admin/get-courses", {
+        const coursesRes = await axios.get(`${API_BASE_URL}/api/admin/get-courses`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
             Role: localStorage.getItem("role")
@@ -118,7 +112,7 @@ const EditCourse = () => {
       // Fetch detailed course information using the updated route
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/admin/course/${course.id}`,
+          `${API_BASE_URL}/api/admin/course/${course.id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -132,7 +126,7 @@ const EditCourse = () => {
         
         // Get the semester course offerings separately if needed
         const offeringsResponse = await axios.get(
-          `http://localhost:5000/api/admin/course/${course.id}`,
+          `${API_BASE_URL}/api/admin/course/${course.id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -195,7 +189,7 @@ const EditCourse = () => {
       };
 
       const response = await axios.put(
-        `http://localhost:5000/api/admin/edit-course/${selectedCourse.id}`,
+        `${API_BASE_URL}/api/admin/edit-course/${selectedCourse.id}`,
         dataToSend,
         {
           headers: {
@@ -209,7 +203,7 @@ const EditCourse = () => {
       setMessageType("success");
       
       // Refresh the courses list
-      const coursesRes = await axios.get("http://localhost:5000/api/admin/get-courses", {
+      const coursesRes = await axios.get(`${API_BASE_URL}/api/admin/get-courses`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
           Role: localStorage.getItem("role")

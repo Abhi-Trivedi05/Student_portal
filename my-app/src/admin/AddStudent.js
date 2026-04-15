@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import axios from "axios";
+import API_BASE_URL from "../apiConfig";
 
 const AddStudent = () => {
   const [activeDropdown, setActiveDropdown] = useState(""); // Tracks active dropdown
@@ -55,7 +56,7 @@ const AddStudent = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/admin/add-student",
+        `${API_BASE_URL}/api/admin/add-student`,
         studentData,
         {
           headers: {

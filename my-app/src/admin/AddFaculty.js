@@ -1,5 +1,6 @@
 // import React, { useState } from "react";
 // import axios from "axios";
+import API_BASE_URL from "../apiConfig";
 
 // const AddFaculty = () => {
 //   const [facultyData, setFacultyData] = useState({
@@ -30,7 +31,7 @@
     
 //     try {
 //       const response = await axios.post(
-//         "http://localhost:5000/api/admin/add-faculty",
+//         "`$API_BASE_URL/api/admin/add-faculty`",
 //         facultyData,
 //         {
 //           headers: {
@@ -207,7 +208,7 @@ const AddFaculty = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/admin/add-faculty",
+        "`$API_BASE_URL/api/admin/add-faculty`",
         facultyData,
         {
           headers: {

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import axios from "axios";
+import API_BASE_URL from "../apiConfig";
 
 // Create an axios instance with the base URL
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: API_BASE_URL,
 });
 
 const FeeApproval = () => {
