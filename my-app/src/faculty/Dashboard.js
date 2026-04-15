@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaUser } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 import axios from "axios";
-import { User, BookOpen, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { BookOpen, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 const FacultyAdvisorDashboard = () => {
   const navigate = useNavigate();

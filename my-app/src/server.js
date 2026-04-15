@@ -23,6 +23,12 @@ import academicroutes from '../routes/academicroutes.js';
 dotenv.config();  // Initialize dotenv to read .env files
 connectDB(); // Connect to MongoDB
 const app = express();
+app.set("trust proxy", 1);
+
+const allowedOrigins = (process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
 app.use(helmet({
     contentSecurityPolicy: {
@@ -31,13 +37,18 @@ app.use(helmet({
             "script-src": ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
             "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             "font-src": ["'self'", "https://fonts.gstatic.com"],
-            "connect-src": ["'self'", process.env.API_URL || "http://localhost:5000", "https://*.mongodb.net", process.env.FRONTEND_URL || "*"]
+            "connect-src": ["'self'", ...(allowedOrigins.length > 0 ? allowedOrigins : ["http://localhost:3000"]), "https://*.mongodb.net"]
         }
     }
 }));
 app.use(compression());
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "*",
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("CORS not allowed for this origin"));
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
@@ -69,6 +80,17 @@ app.get("/api/test-db", async (req, res) => {
         console.error("Database Connection Error:", error);
         res.status(500).json({ message: "Database connection failed" });
     }
+});
+
+app.get("/api/health", (req, res) => {
+    const mongoState = mongoose.connection.readyState === 1 ? "up" : "down";
+    const statusCode = mongoState === "up" ? 200 : 503;
+    return res.status(statusCode).json({
+        status: mongoState === "up" ? "ok" : "degraded",
+        uptime: process.uptime(),
+        mongo: mongoState,
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Serve static assets in production

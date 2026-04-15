@@ -24,9 +24,6 @@ const AcademicCalendarPage = () => {
   const adminId = localStorage.getItem("userId") || localStorage.getItem("adminId") || 1;
 
   // Headers for API requests
-  const headers = {
-    'Role': 'admin'
-  };
 
   // Fetch academic years and calendars on component mount
   useEffect(() => {
@@ -36,7 +33,7 @@ const AcademicCalendarPage = () => {
         
         // Fetch academic years
         const yearsResponse = await fetch('/api/academic-calendar/academic-years', {
-          headers
+          headers: { Role: 'admin' }
         });
         
         if (!yearsResponse.ok) {
@@ -53,7 +50,7 @@ const AcademicCalendarPage = () => {
         
         // Fetch calendars
         const calendarsResponse = await fetch('/api/academic-calendar/calendars', {
-          headers
+          headers: { Role: 'admin' }
         });
         
         if (!calendarsResponse.ok) {
@@ -113,7 +110,7 @@ const AcademicCalendarPage = () => {
       // Send to API
       const response = await fetch('/api/academic-calendar/upload', {
         method: 'POST',
-        headers,
+        headers: { Role: 'admin' },
         body: formData
       });
       
@@ -131,7 +128,7 @@ const AcademicCalendarPage = () => {
         
         // Refresh calendar list
         const updatedResponse = await fetch('/api/academic-calendar/calendars', {
-          headers
+          headers: { Role: 'admin' }
         });
         
         const updatedData = await updatedResponse.json();
@@ -154,7 +151,7 @@ const AcademicCalendarPage = () => {
   const downloadCalendar = async (id, fileName) => {
     try {
       const response = await fetch(`/api/academic-calendar/download/${id}`, {
-        headers
+        headers: { Role: 'admin' }
       });
       
       if (!response.ok) {
@@ -191,7 +188,7 @@ const AcademicCalendarPage = () => {
       const response = await fetch(`/api/academic-calendar/status/${id}`, {
         method: 'PUT',
         headers: {
-          ...headers,
+          Role: 'admin',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ status: newStatus })
@@ -228,7 +225,7 @@ const AcademicCalendarPage = () => {
     try {
       const response = await fetch(`/api/academic-calendar/delete/${calendarToDelete.id}`, {
         method: 'DELETE',
-        headers
+        headers: { Role: 'admin' }
       });
       
       const result = await response.json();
@@ -355,7 +352,12 @@ const AcademicCalendarPage = () => {
         </nav>
 
         <div className="mt-auto p-4 border-t border-[#5d2a87] relative group">
-          <div className="text-gray-300 cursor-pointer">👤 Admin User</div>
+          <div className="text-gray-300 cursor-pointer">
+            <span role="img" aria-label="admin user">
+              👤
+            </span>{" "}
+            Admin User
+          </div>
           <div className="absolute left-4 bottom-12 bg-white text-black shadow rounded w-40 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-10">
             <button
               className="w-full text-left px-4 py-2 hover:bg-gray-100"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, Calendar, Download, Book, BookOpen, Users, Bell } from 'lucide-react';
+import { Calendar, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FaUser } from 'react-icons/fa';
 import API_BASE_URL from "../apiConfig";
@@ -9,20 +9,12 @@ const StudentAcademicCalendarPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [activeDropdown, setActiveDropdown] = useState("");
-  const [showLogout, setShowLogout] = useState(false);
   const navigate = useNavigate();
   
   // API base URL - using centralized config
   
   // Headers for API requests
-  const headers = {
-    'Role': 'student'
-  };
-  
   // Student ID (in a real app, this would come from authentication context)
-  const studentId = localStorage.getItem("userId") || localStorage.getItem("studentId") || 1;
-  const studentName = localStorage.getItem("studentName") || "Student";
 
   // Fetch calendars on component mount
   useEffect(() => {
@@ -33,7 +25,7 @@ const StudentAcademicCalendarPage = () => {
         // Updated fetch URL with the full backend address
         try {
           const response = await fetch(`${API_BASE_URL}/api/academic-calendar/calendars`, {
-            headers: headers
+            headers: { Role: 'student' }
           });
           
           if (!response.ok) {
@@ -93,7 +85,7 @@ const StudentAcademicCalendarPage = () => {
       // First try the actual API with updated URL
       try {
         const response = await fetch(`${API_BASE_URL}/api/academic-calendar/download/${id}`, {
-          headers: headers
+          headers: { Role: 'student' }
         });
         
         if (!response.ok) {

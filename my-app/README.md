@@ -46,11 +46,13 @@ A comprehensive student registration and academic management portal built with t
    ```
 
 3. **Environment Configuration**:
-   Create a `.env` file in the `my-app` directory:
+   Copy `.env.example` to `.env` in the `my-app` directory, then update values:
    ```env
    MONGO_URI=your_mongodb_connection_string
    JWT_SECRET=your_secure_secret_key
    PORT=5000
+   FRONTEND_URL=http://localhost:3000
+   REACT_APP_API_URL=
    ```
 
 4. **Seed the Database (Optional)**:
@@ -77,6 +79,28 @@ Builds the frontend and serves it through the Express backend on a single port.
    npm start
    ```
    The app will be accessible at `http://localhost:5000`.
+
+## 🚢 Deployment Checklist
+
+- Set `NODE_ENV=production` on your host.
+- Set secure environment values for `MONGO_URI`, `JWT_SECRET`, `PORT`, and `FRONTEND_URL`.
+- Use `FRONTEND_URL` as a comma-separated allowlist if you have multiple domains.
+- Ensure your platform health check points to `/api/health`.
+- Build and run with:
+  ```bash
+  npm ci
+  npm run build
+  npm start
+  ```
+
+## 🐳 Docker Deployment
+
+Build and run using Docker:
+
+```bash
+docker build -t student-portal .
+docker run -p 5000:5000 --env-file .env student-portal
+```
 
 ## 🔒 Security Features
 - **Bcrypt Hashing**: All user passwords are salted and hashed.

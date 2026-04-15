@@ -182,11 +182,7 @@ const AnnouncementsPage = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showLogout, setShowLogout] = useState(false);
-  
-  // Get student ID from localStorage (assuming it's stored during login)
-  const studentId = localStorage.getItem("studentId") || "";
-  const studentName = localStorage.getItem("studentName") || "Student";
+  // Get student name from localStorage (assuming it's stored during login)
 
   useEffect(() => {
     const fetchAnnouncements = async () => {

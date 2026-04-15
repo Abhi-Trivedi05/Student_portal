@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaUser } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 
 const MyCourses = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showLogout, setShowLogout] = useState(false);
 
   // Get student ID from localStorage (assuming it's stored during login)
   const studentId = localStorage.getItem("studentId") || "";
-  const studentName = localStorage.getItem("studentName") || "Student";
-
-  
-
   useEffect(() => {
     const fetchCourses = async () => {
       try {

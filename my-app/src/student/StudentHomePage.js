@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaUser } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 import axios from "axios";
 
 const StudentHomePage = () => {
   const navigate = useNavigate();
   const [studentData, setStudentData] = useState(null);
-  const [courses, setCourses] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -36,14 +34,6 @@ const StudentHomePage = () => {
         // Fetch student profile data
         const studentResponse = await axios.get(`/api/student/${studentId}`);
         setStudentData(studentResponse.data);
-        
-        // Fetch student's courses
-        const coursesResponse = await axios.get(`/api/student/courses/${studentId}`);
-        setCourses(coursesResponse.data.courses || []);  // Set empty array as fallback
-        
-        // Fetch announcements
-        const announcementsResponse = await axios.get('/api/announcements');
-        setAnnouncements(announcementsResponse.data.announcements || []);  // Set empty array as fallback
         
         setLoading(false);
       } catch (err) {

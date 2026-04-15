@@ -5,6 +5,9 @@
   "proxy": "http://localhost:5000",
   "main": "src/server.js",
   "private": true,
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
