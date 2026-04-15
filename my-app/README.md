@@ -108,5 +108,5 @@ docker run -p 5000:5000 --env-file .env student-portal
 - **Content Security Policy**: Optimized `helmet` configuration to protect against XSS.
 - **Route Guarding**: Middleware-protected endpoints for Admin and Faculty roles.
 
-## 📄 License
-This project is licensed under the MIT License.
+##
+Rener deployed link:https://student-portal01.onrender.com/
